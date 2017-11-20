@@ -11,3 +11,5 @@ $ convert -delay 1x4 *.jpg mymovie.mp4   # mp4 video: if ffmpeg is installed; 1/
 $ magick animate mymovie.gif
 $ vlc mymovie.mp4                        # if VLC is installed (allows zooming)
 ```
+
+On OSX, you can `alias vlc=/Applications/VLC.app/Contents/MacOS/VLC`to make it available from the shell.
