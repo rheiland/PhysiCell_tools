@@ -31,7 +31,8 @@ except:
   raise
 try:
   # apparently we need mpl's Qt backend to do keypresses 
-  matplotlib.use("Qt5Agg")
+#  matplotlib.use("Qt5Agg")
+  matplotlib.use("TkAgg")  # seems better: more accessible, allows continuous keypress
   import matplotlib.pyplot as plt
 except:
   print("\n---Error: cannot use matplotlib's Qt5Agg backend")
