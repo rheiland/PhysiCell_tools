@@ -24,6 +24,7 @@ except:
 from collections import deque
 try:
   import matplotlib
+  import matplotlib.colors as mplc
 except:
   print("\n---Error: cannot import matplotlib")
   print("---Consider installing Anaconda's Python 3 distribution.\n")
@@ -80,7 +81,7 @@ if (len(sys.argv) > 5):
 
 print("current_idx=",current_idx)
 
-d={}   # dictionary to hold all (x,y) positions of cells
+#d={}   # dictionary to hold all (x,y) positions of cells
 
 """ 
 --- for example ---
@@ -156,14 +157,16 @@ def plot_svg():
       xval = float(circle.attrib['cx'])
 
       s = circle.attrib['fill']
-      rgb = list(map(int, s[4:-1].split(",")))  # using Py3
-      rgb[:]=[x/255. for x in rgb]
-#      rgb_list.append(rgb)
-#      if (num_cells < 25):
-#        print(s)
-#        print(rgb)
+#      print("s=",s)
+#      print("type(s)=",type(s))
+      if (s[0] != '('):  # if not (r,g,b) string, then must be a color name
+        rgb_tuple = mplc.to_rgb(mplc.cnames[s])  # a tuple
+        rgb = [x for x in rgb_tuple]
+      else:
+        rgb = list(map(int, s[4:-1].split(",")))  
+        rgb[:]=[x/255. for x in rgb]
 
-      # test for bogus x,y locations
+      # test for bogus x,y locations (rwh TODO: use max of domain)
       too_large_val = 10000.
       if (math.fabs(xval) > too_large_val):
         print("xval=",xval)
@@ -204,23 +207,38 @@ def plot_svg():
 #plt.ylim(0,2000)
   plt.pause(time_delay)
 
-
+step_value = 1
 def press(event):
-    global current_idx
-    print('press', event.key)
+    global current_idx, step_value
+#    print('press', event.key)
     sys.stdout.flush()
     if event.key == 'escape':
       sys.exit(1)
-    elif event.key == 'left':
-        print('go backwards')
+    elif event.key == 'left':  # left arrow key
+#        print('go backwards')
 #        fig.canvas.draw()
-        current_idx -= 1
+        current_idx -= step_value
+        if (current_idx < 0):
+          current_idx = 0
         plot_svg()
-    elif event.key == 'right':
-        print('go forwards')
+    elif event.key == 'right':  # right arrow key
+#        print('go forwards')
 #        fig.canvas.draw()
-        current_idx += 1
+        current_idx += step_value
         plot_svg()
+    elif event.key == 'up':  # up arrow key
+        step_value += 1
+        print('step_value=',step_value)
+    elif event.key == 'down':  # down arrow key
+        step_value -= 1
+        if (step_value <= 0):
+          step_value = 1
+        print('step_value=',step_value)
+    elif event.key == '0':  # down arrow key
+        current_idx = 0
+        plot_svg()
+    else:
+      print('press', event.key)
 
 
 #for current_idx in range(40):
