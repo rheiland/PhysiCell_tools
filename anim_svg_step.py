@@ -32,7 +32,7 @@ except:
 try:
   # apparently we need mpl's Qt backend to do keypresses 
 #  matplotlib.use("Qt5Agg")
-  matplotlib.use("TkAgg")  # seems better: more accessible, allows continuous keypress
+  matplotlib.use("TkAgg")
   import matplotlib.pyplot as plt
 except:
   print("\n---Error: cannot use matplotlib's Qt5Agg backend")
@@ -116,7 +116,7 @@ def plot_svg():
   rlist = deque()
   rgb_list = deque()
 
-  print('\n---- ' + fname + ':')
+#  print('\n---- ' + fname + ':')
   tree = ET.parse(fname)
   root = tree.getroot()
 #  print('--- root.tag ---')
@@ -138,10 +138,12 @@ def plot_svg():
       break
 
 #  print('------ search tissue')
+  cells_parent = None
+
   for child in tissue_parent:
 #    print('attrib=',child.attrib)
     if (child.attrib['id'] == 'cells'):
-#      print('-------- found cells!!')
+#      print('-------- found cells, setting cells_parent')
       cells_parent = child
       break
     numChildren += 1
@@ -153,19 +155,19 @@ def plot_svg():
 #    print(child.tag, child.attrib)
 #    print('attrib=',child.attrib)
     for circle in child:  # two circles in each child: outer + nucleus
-    # circle.attrib={'cx': '1085.59','cy': '1225.24','fill': 'rgb(159,159,96)','r': '6.67717','stroke': 'rgb(159,159,96)','stroke-width': '0.5'}
+    #  circle.attrib={'cx': '1085.59','cy': '1225.24','fill': 'rgb(159,159,96)','r': '6.67717','stroke': 'rgb(159,159,96)','stroke-width': '0.5'}
 #      print('  --- cx,cy=',circle.attrib['cx'],circle.attrib['cy'])
       xval = float(circle.attrib['cx'])
 
       s = circle.attrib['fill']
 #      print("s=",s)
 #      print("type(s)=",type(s))
-      if (s[0] != '('):  # if not (r,g,b) string, then must be a color name
-        rgb_tuple = mplc.to_rgb(mplc.cnames[s])  # a tuple
-        rgb = [x for x in rgb_tuple]
-      else:
+      if (s[0:3] == "rgb"):  # if an rgb string, e.g. "rgb(175,175,80)" 
         rgb = list(map(int, s[4:-1].split(",")))  
         rgb[:]=[x/255. for x in rgb]
+      else:     # otherwise, must be a color name
+        rgb_tuple = mplc.to_rgb(mplc.cnames[s])  # a tuple
+        rgb = [x for x in rgb_tuple]
 
       # test for bogus x,y locations (rwh TODO: use max of domain)
       too_large_val = 10000.
