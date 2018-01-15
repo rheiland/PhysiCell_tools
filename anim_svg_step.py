@@ -15,20 +15,23 @@ import glob
 import os
 import xml.etree.ElementTree as ET
 import math
-try:
-  import numpy as np
-except:
-  print("\n---Error: cannot import numpy")
-  print("---Consider installing Anaconda's Python 3 distribution.\n")
-  raise
-from collections import deque
+join_our_list = "(And get help at https://groups.google.com/forum/#!forum/physicell-users)\n"
 try:
   import matplotlib
   import matplotlib.colors as mplc
 except:
   print("\n---Error: cannot import matplotlib")
-  print("---Consider installing Anaconda's Python 3 distribution.\n")
+  print("---Try: python -m pip install matplotlib")
+  print(join_our_list)
+#  print("---Consider installing Anaconda's Python 3 distribution.\n")
   raise
+try:
+  import numpy as np  # if mpl was installed, numpy should have been too.
+except:
+  print("\n---Error: cannot import numpy")
+  print("---Try: python -m pip install numpy\n")
+  raise
+from collections import deque
 try:
   # apparently we need mpl's Qt backend to do keypresses 
 #  matplotlib.use("Qt5Agg")
@@ -95,7 +98,7 @@ array([[ 4900.  ,  4900.  ],
 
 fig = plt.figure(figsize=(7,7))
 ax = fig.gca()
-ax.set_aspect("equal")
+#ax.set_aspect("equal")
 
 
 #plt.ion()
@@ -128,12 +131,17 @@ def plot_svg():
 #  print('--- child.tag, child.attrib ---')
   numChildren = 0
   for child in root:
-#    print(child.tag, child.attrib)
+    print(child.tag, child.attrib)
+    print("keys=",child.attrib.keys())
+    if child.text and "Current time" in child.text:
+      svals = child.text.split()
+      title_str = str(current_idx) + ": " + svals[2] + "d, " + svals[4] + "h, " + svals[7] + "m"
+
 #    print("width ",child.attrib['width'])
 #    print('attrib=',child.attrib)
 #    if (child.attrib['id'] == 'tissue'):
     if ('id' in child.attrib.keys()):
-#      print('-------- found tissue!!')
+      print('-------- found tissue!!')
       tissue_parent = child
       break
 
@@ -191,6 +199,12 @@ def plot_svg():
         break
 
     num_cells += 1
+
+#    if num_cells > 3:   # for debugging
+#      print(fname,':  num_cells= ',num_cells," --- debug exit.")
+#      sys.exit(1)
+#      break
+
   print(fname,':  num_cells= ',num_cells)
 
   xvals = np.array(xlist)
@@ -202,7 +216,8 @@ def plot_svg():
 #  print("rvals.min, max=",rvals.min(),rvals.max())
 
   plt.cla()
-  plt.title(fname)
+  title_str += " (" + str(num_cells) + " agents)"
+  plt.title(title_str)
   plt.xlim(axes_min,axes_max)
   plt.ylim(axes_min,axes_max)
   plt.scatter(xvals,yvals, s=rvals*scale_radius, c=rgbs)
