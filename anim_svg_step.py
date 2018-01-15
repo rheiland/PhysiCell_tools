@@ -47,14 +47,15 @@ current_idx = 0
 print("# args=",len(sys.argv)-1)
 
 #for idx in range(len(sys.argv)):
-if (len(sys.argv) == 1):
-  show_nucleus = 0
-  current_idx = 0
-  axes_min = 0.0
-  axes_max = 2000
-  axes_max = 1000
-  scale_radius = 1.0
-elif (len(sys.argv) == 6):
+use_defaults = True
+show_nucleus = 0
+current_idx = 0
+axes_min = 0.0
+axes_max = 2000
+axes_max = 1000
+scale_radius = 1.0
+if (len(sys.argv) == 6):
+  use_defaults = False
   kdx = 1
   show_nucleus = int(sys.argv[kdx])
   kdx += 1
@@ -65,7 +66,7 @@ elif (len(sys.argv) == 6):
   axes_max = float(sys.argv[kdx])
   kdx += 1
   scale_radius = float(sys.argv[kdx])
-else:
+elif (len(sys.argv) != 1):
   print("Please provide either no args or 5 args:")
   usage_str = "show_nucleus start_index axes_min axes_max scale_radius"
   print(usage_str)
@@ -73,6 +74,14 @@ else:
   eg_str = "%s 1 0 0 2000 1" % (sys.argv[0])
   print(eg_str)
   sys.exit(1)
+
+"""
+print("show_nucleus=",show_nucleus)
+print("current_idx=",current_idx)
+print("axes_min=",axes_min)
+print("axes_max=",axes_max)
+print("scale_radius=",scale_radius)
+"""
 
 """
 if (len(sys.argv) > 1):
@@ -117,7 +126,7 @@ time_delay = 0.1
 count = -1
 #while True:
 def plot_svg():
-  global current_idx
+  global current_idx, axes_max
   fname = "snapshot%08d.svg" % current_idx
   if (os.path.isfile(fname) == False):
     print("File does not exist: ",fname)
@@ -142,7 +151,7 @@ def plot_svg():
   for child in root:
 #    print(child.tag, child.attrib)
 #    print("keys=",child.attrib.keys())
-    if 'width' in child.attrib.keys():
+    if use_defaults and ('width' in child.attrib.keys()):
       axes_max = float(child.attrib['width'])
 #      print("--- found width --> axes_max =", axes_max)
     if child.text and "Current time" in child.text:
