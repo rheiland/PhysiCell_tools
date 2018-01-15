@@ -44,17 +44,17 @@ except:
 
 
 current_idx = 0
-print("# args=",len(sys.argv))
+print("# args=",len(sys.argv)-1)
 
 #for idx in range(len(sys.argv)):
-if (len(sys.argv) != 6):
-  usage_str = "show_nucleus start_index axes_min axes_max scale_radius"
-  print(usage_str)
-  print("e.g.,")
-  eg_str = "%s 1 0 0 2000 1" % (sys.argv[0])
-  print(eg_str)
-  sys.exit(1)
-else:
+if (len(sys.argv) == 1):
+  show_nucleus = 0
+  current_idx = 0
+  axes_min = 0.0
+  axes_max = 2000
+  axes_max = 1000
+  scale_radius = 1.0
+elif (len(sys.argv) == 6):
   kdx = 1
   show_nucleus = int(sys.argv[kdx])
   kdx += 1
@@ -65,6 +65,15 @@ else:
   axes_max = float(sys.argv[kdx])
   kdx += 1
   scale_radius = float(sys.argv[kdx])
+else:
+  print("Please provide either no args or 5 args:")
+  usage_str = "show_nucleus start_index axes_min axes_max scale_radius"
+  print(usage_str)
+  print("e.g.,")
+  eg_str = "%s 1 0 0 2000 1" % (sys.argv[0])
+  print(eg_str)
+  sys.exit(1)
+
 """
 if (len(sys.argv) > 1):
    current_idx = int(sys.argv[1])
@@ -131,17 +140,20 @@ def plot_svg():
 #  print('--- child.tag, child.attrib ---')
   numChildren = 0
   for child in root:
-    print(child.tag, child.attrib)
-    print("keys=",child.attrib.keys())
+#    print(child.tag, child.attrib)
+#    print("keys=",child.attrib.keys())
+    if 'width' in child.attrib.keys():
+      axes_max = float(child.attrib['width'])
+#      print("--- found width --> axes_max =", axes_max)
     if child.text and "Current time" in child.text:
       svals = child.text.split()
-      title_str = str(current_idx) + ": " + svals[2] + "d, " + svals[4] + "h, " + svals[7] + "m"
+      title_str = "(" + str(current_idx) + ") Current time: " + svals[2] + "d, " + svals[4] + "h, " + svals[7] + "m"
 
 #    print("width ",child.attrib['width'])
 #    print('attrib=',child.attrib)
 #    if (child.attrib['id'] == 'tissue'):
     if ('id' in child.attrib.keys()):
-      print('-------- found tissue!!')
+#      print('-------- found tissue!!')
       tissue_parent = child
       break
 
@@ -227,42 +239,51 @@ def plot_svg():
 
 step_value = 1
 def press(event):
-    global current_idx, step_value
+  global current_idx, step_value
 #    print('press', event.key)
-    sys.stdout.flush()
-    if event.key == 'escape':
-      sys.exit(1)
-    elif event.key == 'left':  # left arrow key
-#        print('go backwards')
-#        fig.canvas.draw()
-        current_idx -= step_value
-        if (current_idx < 0):
-          current_idx = 0
-        plot_svg()
-    elif event.key == 'right':  # right arrow key
+  sys.stdout.flush()
+  if event.key == 'escape':
+    sys.exit(1)
+  elif event.key == 'h':  # help
+    print('esc: quit')
+    print('right arrow: increment by step_value')
+    print('left arrow:  decrement by step_value')
+    print('up arrow:   increment step_value by 1')
+    print('down arrow: decrement step_value by 1')
+    print('0: reset to 0th frame')
+    print('h: help')
+  elif event.key == 'left':  # left arrow key
+#    print('go backwards')
+#    fig.canvas.draw()
+    current_idx -= step_value
+    if (current_idx < 0):
+      current_idx = 0
+    plot_svg()
+  elif event.key == 'right':  # right arrow key
 #        print('go forwards')
 #        fig.canvas.draw()
-        current_idx += step_value
-        plot_svg()
-    elif event.key == 'up':  # up arrow key
-        step_value += 1
-        print('step_value=',step_value)
-    elif event.key == 'down':  # down arrow key
-        step_value -= 1
-        if (step_value <= 0):
-          step_value = 1
-        print('step_value=',step_value)
-    elif event.key == '0':  # down arrow key
-        current_idx = 0
-        plot_svg()
-    else:
-      print('press', event.key)
+    current_idx += step_value
+    plot_svg()
+  elif event.key == 'up':  # up arrow key
+    step_value += 1
+    print('step_value=',step_value)
+  elif event.key == 'down':  # down arrow key
+    step_value -= 1
+    if (step_value <= 0):
+      step_value = 1
+    print('step_value=',step_value)
+  elif event.key == '0':  # reset to 0th frame/file
+    current_idx = 0
+    plot_svg()
+  else:
+    print('press', event.key)
 
 
 #for current_idx in range(40):
 #  fname = "snapshot%08d.svg" % current_idx
 #  plot_svg(fname)
 plot_svg()
+print("\nNOTE: click in plot window to give it focus before using keys.")
 
 fig.canvas.mpl_connect('key_press_event', press)
 
