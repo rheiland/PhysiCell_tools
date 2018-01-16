@@ -5,9 +5,11 @@
 # Usage:
 #  python anim_svg_step.py <show_nucleus start_index axes_min axes_max scale_radius>
 #
-# Examples:
-#  python anim_svg_step.py 0 5 0 2000 0.5
+# Examples (run from directory containing the .svg files):
+#  python anim_svg_step.py 
 #  python anim_svg_step.py 0 5 700 1300 12
+#
+# Author: Randy Heiland
 #
 #
 import sys
@@ -15,7 +17,7 @@ import glob
 import os
 import xml.etree.ElementTree as ET
 import math
-join_our_list = "(And get help at https://groups.google.com/forum/#!forum/physicell-users)\n"
+join_our_list = "(Join/ask questions at https://groups.google.com/forum/#!forum/physicell-users)\n"
 try:
   import matplotlib
   import matplotlib.colors as mplc
@@ -30,6 +32,7 @@ try:
 except:
   print("\n---Error: cannot import numpy")
   print("---Try: python -m pip install numpy\n")
+  print(join_our_list)
   raise
 from collections import deque
 try:
@@ -38,7 +41,8 @@ try:
   matplotlib.use("TkAgg")
   import matplotlib.pyplot as plt
 except:
-  print("\n---Error: cannot use matplotlib's Qt5Agg backend")
+  print("\n---Error: cannot use matplotlib's TkAgg backend")
+  print(join_our_list)
 #  print("Consider installing Anaconda's Python 3 distribution.")
   raise
 
@@ -71,7 +75,7 @@ elif (len(sys.argv) != 1):
   usage_str = "show_nucleus start_index axes_min axes_max scale_radius"
   print(usage_str)
   print("e.g.,")
-  eg_str = "%s 1 0 0 2000 1" % (sys.argv[0])
+  eg_str = "%s 0 0 0 2000 1" % (sys.argv[0])
   print(eg_str)
   sys.exit(1)
 
@@ -198,14 +202,14 @@ def plot_svg():
         rgb_tuple = mplc.to_rgb(mplc.cnames[s])  # a tuple
         rgb = [x for x in rgb_tuple]
 
-      # test for bogus x,y locations (rwh TODO: use max of domain)
+      # test for bogus x,y locations (rwh TODO: use max of domain?)
       too_large_val = 10000.
       if (math.fabs(xval) > too_large_val):
-        print("xval=",xval)
+        print("bogus xval=",xval)
         break
       yval = float(circle.attrib['cy'])
       if (math.fabs(yval) > too_large_val):
-        print("xval=",xval)
+        print("bogus xval=",xval)
         break
 
       rval = float(circle.attrib['r'])
@@ -216,6 +220,7 @@ def plot_svg():
       rlist.append(rval)
       rgb_list.append(rgb)
 
+#     For .svg files with cells that *have* a nucleus, there will be a 2nd
       if (show_nucleus == 0):
         break
 
