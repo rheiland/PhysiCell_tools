@@ -1,4 +1,6 @@
-# PhysiCell_scripts
+# PhysiCell_tools
+
+This repo will contain generally useful Python scripts, Jupyter (IPython) notebooks, and other tools for PhysiCell. The are tools to convert data from one type to another, visualize output data, etc, etc.
 
 ```
 $ python svg2other.py 0 56 2 20 jpg      # convert .svg files to .jpg (new files)
