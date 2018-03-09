@@ -1,0 +1,10 @@
+def on_button_clicked(b):
+    file = open("liver.xml", "a+")
+    file.write("\nButton clicked.\n")
+    print("File saved!")
+    file.close()
+    
+write_config_button.on_click(on_button_clicked)
+
+#Adding this code to config_gui will create a button event for the green "Write config file" button.
+#It creates and adds the string "Button clicked." to a file called liver.xml.
