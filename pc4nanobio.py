@@ -1,3 +1,9 @@
+
+# coding: utf-8
+
+# In[53]:
+
+
 # %load pc4nanobio.py
 import ipywidgets as widgets
 from ipywidgets import Layout, Button, Box
@@ -17,6 +23,9 @@ join_our_list = "(Join/ask questions at https://groups.google.com/forum/#!forum/
 get_ipython().run_line_magic('matplotlib', 'inline')
 
 constWidth = '175px'
+tab_layout = widgets.Layout(border='2px solid black', width='900px', height='500px')
+tab_layout.height = '400px'
+
 xmin = widgets.FloatText(
     value= -500.,
     description='$X_{min}$',
@@ -103,7 +112,8 @@ tdelta = widgets.BoundedFloatText(
 toggle2D = widgets.Checkbox(
     value=True,
     description='2-D',
-    disabled=False
+    disabled=False,
+    layout = Layout(width = constWidth),
 )
 def toggle2D_cb(b):
     if (toggle2D.value):
@@ -145,10 +155,12 @@ toggle_prng = widgets.Checkbox(
     value=False,
     description='Seed PRNG',
     disabled=False,
-    layout = Layout(width = '190px'),
+    layout = Layout(width = constWidth),
+    #layout = Layout(width = '190px'),
 )
 prng_seed = widgets.BoundedIntText(
     min = 1,
+    value = 13,
     description='Seed',
     disabled=True,
     layout = Layout(width = constWidth),
@@ -161,7 +173,7 @@ def toggle_prng_cb(b):
     
 toggle_prng.observe(toggle_prng_cb)
 
-prng_row = widgets.HBox([toggle_prng, prng_seed])
+#prng_row = widgets.HBox([toggle_prng, prng_seed])
 
 #----- Output ------
 output_dir_str = 'output'  # match the "value" of the widget below
@@ -186,30 +198,30 @@ svg_t0 = widgets.BoundedFloatText (
     min=0,
     value=0.0,
     description='$T_0$',
+    disabled=True,
+    layout = Layout(width = constWidth),
+)
+svg_interval = widgets.BoundedIntText(
+    min=1,
+    value=5,
+    description='interval',
     disabled=False,
     layout = Layout(width = constWidth),
 )
-svg_num_delT = widgets.BoundedIntText(
-    min=1,
-    value=5,
-    description='Every $N^{th}$ time step',
-    disabled=False,
-    layout = Layout(width = '200px'),
-)
 def toggle_svg_cb(b):
     if (toggle_svg.value):
-        svg_t0.disabled = False
-        svg_num_delT.disabled = False
+        svg_t0.disabled = True #False
+        svg_interval.disabled = False
     else:
         svg_t0.disabled = True
-        svg_num_delT.disabled = True
+        svg_interval.disabled = True
     
 toggle_svg.observe(toggle_svg_cb)
 
 
 toggle_mcds = widgets.Checkbox(
     value=False,
-    description='MCDS',
+    description='Full',
     disabled=False,
     layout = Layout(width = constWidth),
 )
@@ -219,20 +231,20 @@ mcds_t0 = widgets.FloatText(
     disabled=True,
     layout = Layout(width = constWidth),
 )
-mcds_num_delT = widgets.BoundedIntText(
+mcds_interval = widgets.BoundedIntText(
     min=0,
     value=5,
-    description='Every $N^{th}$ time step',
+    description='interval',
     disabled=True,
     layout = Layout(width = constWidth),
 )
 def toggle_mcds_cb(b):
     if (toggle_mcds.value):
-        mcds_t0.disabled = False
-        mcds_num_delT.disabled = False
+        mcds_t0.disabled = True #False
+        mcds_interval.disabled = False
     else:
         mcds_t0.disabled = True
-        mcds_num_delT.disabled = True
+        mcds_interval.disabled = True
     
 toggle_mcds.observe(toggle_mcds_cb)
 
@@ -381,12 +393,13 @@ kill_button = Button(
 kill_button.on_click(kill_cb)
 
 read_config_row = widgets.HBox([read_config_button, read_config_file])
-svg_output_row = widgets.HBox([toggle_svg, svg_t0, svg_num_delT])
-mat_output_row = widgets.HBox([toggle_mcds, mcds_t0, mcds_num_delT])
+svg_output_row = widgets.HBox([toggle_svg, svg_t0, svg_interval])
+mat_output_row = widgets.HBox([toggle_mcds, mcds_t0, mcds_interval])
 write_config_row = widgets.HBox([write_config_button, write_config_file])
 run_sim_row = widgets.HBox([run_button, run_command, kill_button])
-config_tab = widgets.VBox([read_config_row, toggle2D, x_row,y_row,z_row,  tmax, omp_threads, prng_row,  
-                           output_dir,svg_output_row,mat_output_row, write_config_row, run_sim_row, run_output])
+toggle_2D_seed_row = widgets.HBox([toggle2D, toggle_prng, prng_seed])
+config_tab = widgets.VBox([read_config_row, toggle_2D_seed_row, x_row,y_row,z_row,  tmax, omp_threads,  
+                           output_dir,svg_output_row,mat_output_row], layout=tab_layout)
 
 
 #----------------------------------------------
@@ -403,6 +416,8 @@ axes_max = 1000
 scale_radius = 1.0
 
 svg_dir_str = '.'
+mcds_dir_str = '.'
+
 
 def plot_svg(SVG):
   global current_idx, axes_max
@@ -566,19 +581,127 @@ svg_slider = widgets.IntSlider()
 widgets.jslink((svg_play, 'value'), (svg_slider, 'value'))
 widgets.HBox([svg_play, svg_slider])
 
-svg_tab = widgets.VBox([svg_dir, svg_plot, svg_play])
+svg_tab = widgets.VBox([svg_dir, svg_plot, svg_play], layout=tab_layout)
 #---------------------
 
-dummy_tab_stuff = widgets.Text(
+cell_name = widgets.Text(
+    value='untreated cancer',
+    description='Name:',
+)
+max_birth_rate = widgets.BoundedFloatText (
+    min=0,
+    value=0.0072,
+    description='max birth rate',
+    disabled=False,
+    layout = Layout(width = constWidth),
+)
+
+o2_prolif_sat = widgets.BoundedFloatText (
+    min=0,
+    value=38,
+    description='$O_2$: prolif sat',
+    disabled=False,
+    layout = Layout(width = constWidth),
+)
+o2_prolif_thresh = widgets.BoundedFloatText (
+    min=0,
+    value=5,
+    description='prolif thresh',
+    disabled=False,
+    layout = Layout(width = constWidth),
+)
+
+glucose_prolif_ref = widgets.BoundedFloatText (
+    min=0,
+    value=1,
+    description='$G$: prolif ref',
+    disabled=False,
+    layout = Layout(width = constWidth),
+)
+glucose_prolif_sat = widgets.BoundedFloatText (
+    min=0,
+    value=1,
+    description='prolif sat',
+    disabled=False,
+    layout = Layout(width = constWidth),
+)
+glucose_prolif_thresh = widgets.BoundedFloatText (
+    min=0,
+    value=0,
+    description='prolif thresh',
+    disabled=False,
+    layout = Layout(width = constWidth),
+)
+
+cells_row1 = widgets.HBox([cell_name, max_birth_rate])
+cells_row2 = widgets.HBox([o2_prolif_sat, o2_prolif_thresh])
+cells_row3 = widgets.HBox([glucose_prolif_ref, glucose_prolif_sat, glucose_prolif_thresh])
+cells_tab = widgets.VBox([cells_row1, cells_row2, cells_row3], layout=tab_layout)
+
+
+#=========
+nparticles_tab = widgets.Text(
     value='.',
     description='dummy:',
+    layout=tab_layout,
 )
-tabs = widgets.Tab(children=[config_tab, dummy_tab_stuff,dummy_tab_stuff, svg_tab])
+pkpd_tab = widgets.Text(
+    value='.',
+    description='dummy:',
+    layout=tab_layout,
+)
+
+#--------------------
+
+def plot_mcds(MCDS):
+    global current_idx, axes_max
+    global mcds_dir_str
+    fname = mcds_dir_str + "/output%08d.mat" % MCDS
+    return
+
+def mcds_dir_cb(w):
+    global mcds_dir_str
+    mcds_dir_str = w.value
+    print(mcds_dir_str)
+    
+mcds_dir = widgets.Text(
+    value='.',
+    description='Directory:',
+)
+mcds_dir.on_submit(mcds_dir_cb)
+
+mcds_plot = widgets.interactive(plot_mcds, MCDS=(0, 480), continuous_update=False)
+mcds_output = mcds_plot.children[-1]
+mcds_output.layout.height = '300px'
+#mcds_plot
+
+mcds_play = widgets.Play(
+#     interval=10,
+    value=50,
+    min=0,
+    max=100,
+    step=1,
+    description="Press play",
+    disabled=False,
+)
+mcds_slider = widgets.IntSlider()
+widgets.jslink((mcds_play, 'value'), (mcds_slider, 'value'))
+widgets.HBox([mcds_play, mcds_slider])
+
+mcds_tab = widgets.VBox([mcds_dir, mcds_plot, mcds_play], layout=tab_layout)
+
+#----------------------
+tabs = widgets.Tab(children=[config_tab, cells_tab, nparticles_tab, pkpd_tab, svg_tab, mcds_tab])
 tab_idx = 0
-tabs.set_title(tab_idx, 'Config Basics | Run'); tab_idx += 1
+tabs.set_title(tab_idx, 'Config Basics'); tab_idx += 1
 tabs.set_title(tab_idx, 'Cells'); tab_idx += 1
+tabs.set_title(tab_idx, 'Nanoparticles'); tab_idx += 1   # nanoparticles, r'\(\eta)'
 tabs.set_title(tab_idx, 'PK/PD'); tab_idx += 1
-tabs.set_title(tab_idx, 'SVG Plots')
-widgets.VBox(children=[tabs])
+tabs.set_title(tab_idx, 'SVG'); tab_idx += 1
+tabs.set_title(tab_idx, 'Full output')
+
+run_sim = widgets.VBox([write_config_row, run_sim_row, run_output])
+
+widgets.VBox(children=[tabs,run_sim])
 
 
