@@ -106,15 +106,15 @@ toggle2D = widgets.Checkbox(
     disabled=False
 )
 def toggle2D_cb(b):
-    #print(type(b))
-    #print(b['new'])
-    if (b['new']):
+    if (toggle2D.value):
         #zmin.disabled = zmax.disabled = zdelta.disabled = True
         zmin.disabled = True
         zmax.disabled = True
+        zdelta.disabled = True
     else:
         zmin.disabled = False
         zmax.disabled = False
+        zdelta.disabled = False
     
 toggle2D.observe(toggle2D_cb)
 
@@ -137,21 +137,31 @@ omp_threads = widgets.BoundedIntText(
     step=1,
     description='# threads',
     disabled=False,
+    layout = Layout(width = constWidth),
+
 )
-prng_toggle = widgets.Checkbox(
+
+toggle_prng = widgets.Checkbox(
     value=False,
     description='Seed PRNG',
     disabled=False,
-    layout = Layout(width = constWidth),
+    layout = Layout(width = '190px'),
 )
 prng_seed = widgets.BoundedIntText(
     min = 1,
-    value=13,
-    description='Seed value',
-    disabled=False,
+    description='Seed',
+    disabled=True,
     layout = Layout(width = constWidth),
 )
-prng_row = widgets.HBox([prng_toggle, prng_seed])
+def toggle_prng_cb(b):
+    if (toggle_prng.value):
+        prng_seed.disabled = False
+    else:
+        prng_seed.disabled = True
+    
+toggle_prng.observe(toggle_prng_cb)
+
+prng_row = widgets.HBox([toggle_prng, prng_seed])
 
 #----- Output ------
 output_dir_str = 'output'  # match the "value" of the widget below
@@ -166,7 +176,7 @@ def config_output_dir_cb(w):
     
 output_dir.on_submit(config_output_dir_cb)
 
-svg_toggle = widgets.Checkbox(
+toggle_svg = widgets.Checkbox(
     value=True,
     description='SVG',
     disabled=False,
@@ -184,10 +194,20 @@ svg_num_delT = widgets.BoundedIntText(
     value=5,
     description='Every $N^{th}$ time step',
     disabled=False,
-    layout = Layout(width = constWidth),
+    layout = Layout(width = '200px'),
 )
+def toggle_svg_cb(b):
+    if (toggle_svg.value):
+        svg_t0.disabled = False
+        svg_num_delT.disabled = False
+    else:
+        svg_t0.disabled = True
+        svg_num_delT.disabled = True
+    
+toggle_svg.observe(toggle_svg_cb)
 
-mcds_toggle = widgets.Checkbox(
+
+toggle_mcds = widgets.Checkbox(
     value=False,
     description='MCDS',
     disabled=False,
@@ -206,6 +226,15 @@ mcds_num_delT = widgets.BoundedIntText(
     disabled=True,
     layout = Layout(width = constWidth),
 )
+def toggle_mcds_cb(b):
+    if (toggle_mcds.value):
+        mcds_t0.disabled = False
+        mcds_num_delT.disabled = False
+    else:
+        mcds_t0.disabled = True
+        mcds_num_delT.disabled = True
+    
+toggle_mcds.observe(toggle_mcds_cb)
 
 #----------------------------
 def read_config_file_cb(b):
@@ -352,8 +381,8 @@ kill_button = Button(
 kill_button.on_click(kill_cb)
 
 read_config_row = widgets.HBox([read_config_button, read_config_file])
-svg_output_row = widgets.HBox([svg_toggle, svg_t0, svg_num_delT])
-mat_output_row = widgets.HBox([mcds_toggle, mcds_t0, mcds_num_delT])
+svg_output_row = widgets.HBox([toggle_svg, svg_t0, svg_num_delT])
+mat_output_row = widgets.HBox([toggle_mcds, mcds_t0, mcds_num_delT])
 write_config_row = widgets.HBox([write_config_button, write_config_file])
 run_sim_row = widgets.HBox([run_button, run_command, kill_button])
 config_tab = widgets.VBox([read_config_row, toggle2D, x_row,y_row,z_row,  tmax, omp_threads, prng_row,  
@@ -551,4 +580,5 @@ tabs.set_title(tab_idx, 'Cells'); tab_idx += 1
 tabs.set_title(tab_idx, 'PK/PD'); tab_idx += 1
 tabs.set_title(tab_idx, 'SVG Plots')
 widgets.VBox(children=[tabs])
+
 
