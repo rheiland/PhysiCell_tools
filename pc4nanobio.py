@@ -1,6 +1,12 @@
 
 # coding: utf-8
 
+# In[104]:
+
+
+# %load pc4nanobio.py
+
+
 # In[53]:
 
 
@@ -9,11 +15,13 @@ import ipywidgets as widgets
 from ipywidgets import Layout, Button, Box
 #from ipywidgets import interact, interactive
 from subprocess import Popen, PIPE, STDOUT
-#from hublib.cmd import runCommand
+from hublib.cmd import runCommand
+from hublib.ui import RunCommand
 import xml.etree.ElementTree as ET
 
 import matplotlib.pyplot as plt
 import matplotlib.colors as mplc
+import scipy.io
 import sys, os, glob, random, math
 import numpy as np
 from collections import deque
@@ -23,8 +31,8 @@ join_our_list = "(Join/ask questions at https://groups.google.com/forum/#!forum/
 get_ipython().run_line_magic('matplotlib', 'inline')
 
 constWidth = '175px'
-tab_layout = widgets.Layout(border='2px solid black', width='900px', height='500px')
-tab_layout.height = '400px'
+tab_layout = widgets.Layout(border='2px solid black', width='900px', height='600px')
+#tab_layout.height = '500px'
 
 xmin = widgets.FloatText(
     value= -500.,
@@ -140,6 +148,16 @@ box_layout = Layout(display='flex',
 #z_row = Box([toggle2D,zmin,zmax,zdelta], layout=box_layout)
 #domain_range = Box([x_row,y_row,z_row], layout=box_layout)
 
+tumor_radius = widgets.BoundedFloatText(
+    value=100,
+    min=1,
+    max=99999,  # TODO - wth
+    step=1,
+    description='Tumor Radius',
+    disabled=False,
+    layout = Layout(width = constWidth),
+
+)
 
 omp_threads = widgets.BoundedIntText(
     value=8,
@@ -198,11 +216,12 @@ svg_t0 = widgets.BoundedFloatText (
     min=0,
     value=0.0,
     description='$T_0$',
-    disabled=True,
+    disabled=False,
     layout = Layout(width = constWidth),
 )
 svg_interval = widgets.BoundedIntText(
     min=1,
+    max=99999999,
     value=5,
     description='interval',
     disabled=False,
@@ -210,7 +229,7 @@ svg_interval = widgets.BoundedIntText(
 )
 def toggle_svg_cb(b):
     if (toggle_svg.value):
-        svg_t0.disabled = True #False
+        svg_t0.disabled = False #False
         svg_interval.disabled = False
     else:
         svg_t0.disabled = True
@@ -233,6 +252,7 @@ mcds_t0 = widgets.FloatText(
 )
 mcds_interval = widgets.BoundedIntText(
     min=0,
+    max=99999999,
     value=5,
     description='interval',
     disabled=True,
@@ -240,7 +260,7 @@ mcds_interval = widgets.BoundedIntText(
 )
 def toggle_mcds_cb(b):
     if (toggle_mcds.value):
-        mcds_t0.disabled = True #False
+        mcds_t0.disabled = False #False
         mcds_interval.disabled = False
     else:
         mcds_t0.disabled = True
@@ -249,27 +269,31 @@ def toggle_mcds_cb(b):
 toggle_mcds.observe(toggle_mcds_cb)
 
 #----------------------------
+# NOTE: any time the elm names change in the XML, need to change here!!!
 def read_config_file_cb(b):
 #    global pc4nanobio_config_xml
     tree = ET.parse(read_config_file.value)
     root = tree.getroot()
-    xmin.value = float(root.find(".//xmin").text)
-    xmax.value = float(root.find(".//xmax").text)
+    xmin.value = float(root.find(".//x_min").text)
+    xmax.value = float(root.find(".//x_max").text)
     xdelta.value = float(root.find(".//dx").text)
     
-    ymin.value = float(root.find(".//ymin").text)
-    ymax.value = float(root.find(".//ymax").text)
+    ymin.value = float(root.find(".//y_min").text)
+    ymax.value = float(root.find(".//y_max").text)
     ydelta.value = float(root.find(".//dy").text)
     
-    zmin.value = float(root.find(".//zmin").text)
-    zmax.value = float(root.find(".//zmax").text)
+    zmin.value = float(root.find(".//z_min").text)
+    zmax.value = float(root.find(".//z_max").text)
     zdelta.value = float(root.find(".//dz").text)
     
     tmax.value = float(root.find(".//max_time").text)
     
+    tumor_radius.value = float(root.find(".//radius").text)
     omp_threads.value = int(root.find(".//omp_num_threads").text)
     
     output_dir.value = (root.find(".//folder").text)
+    svg_interval.value = int(root.find(".//interval").text)
+    mcds_interval.value = int(root.find(".//interval").text)
     
     return
 
@@ -295,17 +319,19 @@ def write_config_file_cb(b):
     root = tree.getroot()
     
     # TODO: verify valid type (numeric) and range?
-    root.find(".//xmin").text = str(xmin.value)
-    root.find(".//xmax").text = str(xmax.value)
+    root.find(".//x_min").text = str(xmin.value)
+    root.find(".//x_max").text = str(xmax.value)
     root.find(".//dx").text = str(xdelta.value)
-    
-    root.find(".//ymin").text = str(ymin.value)
-    root.find(".//ymax").text = str(ymax.value)
-    root.find(".//zmin").text = str(zmin.value)
-    root.find(".//zmax").text = str(zmax.value)
+    root.find(".//y_min").text = str(ymin.value)
+    root.find(".//y_max").text = str(ymax.value)
+    root.find(".//dy").text = str(ydelta.value)
+    root.find(".//z_min").text = str(zmin.value)
+    root.find(".//z_max").text = str(zmax.value)
+    root.find(".//dz").text = str(zdelta.value)
     
     root.find(".//max_time").text = str(tmax.value)
     
+    root.find(".//radius").text = str(tumor_radius.value)
     root.find(".//omp_num_threads").text = str(omp_threads.value)
     
     root.find(".//folder").text = str(output_dir.value)
@@ -341,30 +367,46 @@ write_config_file = widgets.Text(
 run_output = widgets.Output(layout=widgets.Layout(width='900px', height='100px', border='solid'))
 run_output
 
+run_command_str = widgets.Text(
+    value='pc-nb nanobio_settings.xml',
+    description='',
+    disabled=False,
+)
+
+def run_sim(s):
+    s.run("/Users/heiland/dev/run-nanobio/pc-nb nanobio_settings.xml")
+    
 def run_cb(b):
     global my_proc
-    print('run sim...')
+    print('running: ', run_command_str.value)
     with run_output:
-        args = ['/Users/heiland/git/PhysiCell-nanobio-com-fork/trunk/src/PhysiCell-nanobio','nanobio_settings.xml']
-        my_proc = Popen(args, stdout=PIPE, stderr=STDOUT)
+#         print(type(run_button))
+#         print(dir(run_button))
+#         args = ['/Users/heiland/git/PhysiCell-nanobio-com-fork/trunk/src/PhysiCell-nanobio','nanobio_settings.xml']
+        args = ['/Users/heiland/dev/run-nanobio/pc-nb','nanobio_settings.xml']
+        #my_proc = Popen(args, stdout=PIPE, stderr=STDOUT)
         #runCommand('/Users/heiland/git/PhysiCell-nanobio-com-fork/trunk/src/PhysiCell-nanobio nanobio_settings.xml')
+        sys.path.insert(0, os.path.abspath('..'))
+#         runCommand('/Users/heiland/dev/run-nanobio/pc-nb nanobio_settings.xml')
+        runCommand('pc-nb nanobio_settings.xml')
         
-        # This should be safe because we're not piping stdin to the process.
+    # NOTE: using the following approach will block us from other processes, e.g. visualizing results or executing a cmd in another cell
+    # This should be safe because we're not piping stdin to the process.
     # It gets tricky if we are, because the process can be waiting for input while we're waiting for output.
-    while True:
-        # Wait for some output, read it and print it.
-        with run_output:
-            my_output = my_proc.stdout.read1(1024).decode('utf-8')
-            print(my_output, end='')
+#     while True:
+#         # Wait for some output, read it and print it.
+#         with run_output:
+#             my_output = my_proc.stdout.read1(1024).decode('utf-8')
+#             print(my_output, end='')
 
-        # Has the subprocess finished yet?
-        if my_proc.poll() is not None:
-            break
+#         # Has the subprocess finished yet?
+#         if my_proc.poll() is not None:
+#             break
 
     if my_proc.returncode != 0:
         print("Exited with error code:", my_proc.returncode)
     
-    
+#run_button = RunCommand(start_func=run_sim)  # optionally: , done_func=read_data
 run_button = Button(
     description='Run',
     disabled=False,
@@ -372,12 +414,6 @@ run_button = Button(
     tooltip='Run simulation',
 )
 run_button.on_click(run_cb)
-
-run_command = widgets.Text(
-    value='PhysiCell-nanobio nanobio_settings.xml',
-    description='',
-    disabled=False,
-)
 
 def kill_cb(b):
     global my_proc
@@ -393,13 +429,16 @@ kill_button = Button(
 kill_button.on_click(kill_cb)
 
 read_config_row = widgets.HBox([read_config_button, read_config_file])
-svg_output_row = widgets.HBox([toggle_svg, svg_t0, svg_interval])
-mat_output_row = widgets.HBox([toggle_mcds, mcds_t0, mcds_interval])
+#svg_output_row = widgets.HBox([toggle_svg, svg_t0, svg_interval])
+#mat_output_row = widgets.HBox([toggle_mcds, mcds_t0, mcds_interval])
+svg_mat_output_row = widgets.HBox([toggle_svg,svg_interval, toggle_mcds,mcds_interval])
 write_config_row = widgets.HBox([write_config_button, write_config_file])
-run_sim_row = widgets.HBox([run_button, run_command, kill_button])
+#run_sim_row = widgets.HBox([run_button, run_command_str, kill_button])
+run_sim_row = widgets.HBox([run_button, run_command_str])
+
 toggle_2D_seed_row = widgets.HBox([toggle2D, toggle_prng, prng_seed])
 config_tab = widgets.VBox([read_config_row, toggle_2D_seed_row, x_row,y_row,z_row,  tmax, omp_threads,  
-                           output_dir,svg_output_row,mat_output_row], layout=tab_layout)
+                           tumor_radius, output_dir,svg_mat_output_row], layout=tab_layout)
 
 
 #----------------------------------------------
@@ -412,17 +451,40 @@ show_nucleus = 0
 current_idx = 0
 axes_min = 0.0
 axes_max = 2000
-axes_max = 1000
+#axes_max = 1000
 scale_radius = 1.0
 
-svg_dir_str = '.'
-mcds_dir_str = '.'
+svg_dir_str = output_dir_str
+mcds_dir_str = output_dir_str
+
+def plot_microenv(FileId):
+    global current_idx, axes_max
+    global svg_dir_str
+    #  dir = svg_dir.value
+    print('debug> plot_microenv: idx=',FileId)
+    fname = svg_dir_str + "/output00000000_microenvironment0.mat"  # % idx
+    fname = svg_dir_str + "/output%08d_microenvironment0.mat" % FileId
+
+    info_dict = {}
+    scipy.io.loadmat(fname, info_dict)
+    M = info_dict['multiscale_microenvironment']
+    field_index = 0
+    f = M[field_index,:]   # 4=tumor cells field, 5=blood vessel density, 6=growth substrate
+    #plt.clf()
+    #my_plot = plt.imshow(f.reshape(400,400), cmap='jet', extent=[0,20, 0,20])
+    plt.figure(figsize=(7, 7))
+    my_plot = plt.imshow(f.reshape(100,100), cmap='jet', extent=[0,20, 0,20])
+    plt.colorbar(my_plot)
+    plt.title("Oxygen")
+    #plt.show()
 
 
+get_ipython().run_line_magic('matplotlib', 'inline')
 def plot_svg(SVG):
   global current_idx, axes_max
   global svg_dir_str
 #  dir = svg_dir.value
+#   print('plot_svg: SVG=',SVG)
   fname = svg_dir_str + "/snapshot%08d.svg" % SVG
 
   if (os.path.isfile(fname) == False):
@@ -450,7 +512,7 @@ def plot_svg(SVG):
 #    print("keys=",child.attrib.keys())
     if use_defaults and ('width' in child.attrib.keys()):
       axes_max = float(child.attrib['width'])
-#      print("--- found width --> axes_max =", axes_max)
+      print("debug> found width --> axes_max =", axes_max)
     if child.text and "Current time" in child.text:
       svals = child.text.split()
       #title_str = "(" + str(current_idx) + ") Current time: " + svals[2] + "d, " + svals[4] + "h, " + svals[7] + "m"
@@ -535,7 +597,9 @@ def plot_svg(SVG):
 #print("rvals[0:5]=",rvals[0:5])
 #  print("rvals.min, max=",rvals.min(),rvals.max())
 
-  plt.cla()
+#rwh - is this where I change size of render window?? (YES - yipeee!)
+  plt.figure(figsize=(7, 7))
+#   plt.cla()
   title_str += " (" + str(num_cells) + " agents)"
   plt.title(title_str)
   plt.xlim(axes_min,axes_max)
@@ -544,12 +608,12 @@ def plot_svg(SVG):
 #plt.xlim(0,2000)  # TODO - get these values from width,height in .svg at top
 #plt.ylim(0,2000)
 #  plt.pause(time_delay)
-  plt.axis('equal')
+#   plt.axis('equal')   # doing this will cause the axes to scale dynamically, probably unwanted
 
 
 # keep last plot displayed
 #plt.ioff()
-#plt.show()
+  plt.show()
 
 def svg_dir_cb(w):
     global svg_dir_str
@@ -557,31 +621,53 @@ def svg_dir_cb(w):
     print(svg_dir_str)
     
 svg_dir = widgets.Text(
-    value='.',
+    value=svg_dir_str,
     description='Directory:',
 )
 #svg_dir.observe(svg_dir_cb)
 svg_dir.on_submit(svg_dir_cb)
 
-svg_plot = widgets.interactive(plot_svg, SVG=(0, 480), continuous_update=False)
-output = svg_plot.children[-1]
-output.layout.height = '300px'
-svg_plot
+#rwh - is this where I change size of render window?? (apparently not)
+svg_plot = widgets.interactive(plot_svg, SVG=(0, 100), continuous_update=False)
+# output = svg_plot.children[-1]
+# output.layout.height = '300px'
+# output = svg_plot.children[1]
+svg_plot_size = '600px'
+svg_plot.layout.width = svg_plot_size
+svg_plot.layout.height = svg_plot_size
+#svg_plot
 
-svg_play = widgets.Play(
-#     interval=10,
-    value=50,
-    min=0,
-    max=100,
-    step=1,
-    description="Press play",
-    disabled=False,
-)
-svg_slider = widgets.IntSlider()
-widgets.jslink((svg_play, 'value'), (svg_slider, 'value'))
-widgets.HBox([svg_play, svg_slider])
+# video-style widget - perhaps for future use
+# svg_play = widgets.Play(
+#     interval=1,
+#     value=50,
+#     min=0,
+#     max=100,
+#     step=1,
+#     description="Press play",
+#     disabled=False,
+# )
+# def svg_slider_change(change):
+#     print('svg_slider_change: type(change)=',type(change),change.new)
+#     plot_svg(change.new)
+    
+#svg_play
+# svg_slider = widgets.IntSlider()
+# svg_slider.observe(svg_slider_change, names='value')
 
-svg_tab = widgets.VBox([svg_dir, svg_plot, svg_play], layout=tab_layout)
+# widgets.jslink((svg_play, 'value'), (svg_slider,'value')) #  (svg_slider, 'value'), (plot_svg, 'value'))
+
+# svg_slider = widgets.IntSlider()
+# widgets.jslink((play, 'value'), (slider, 'value'))
+# widgets.HBox([svg_play, svg_slider])
+
+# Using the following generates a new mpl plot; it doesn't use the existing plot!
+#svg_anim = widgets.HBox([svg_play, svg_slider])
+
+#svg_tab = widgets.VBox([svg_dir, svg_plot, svg_anim], layout=tab_layout)
+svg_tab = widgets.VBox([svg_dir, svg_plot], layout=tab_layout)
+
+#svg_tab = widgets.VBox([svg_dir, svg_anim], layout=tab_layout)
 #---------------------
 
 cell_name = widgets.Text(
@@ -640,11 +726,38 @@ cells_tab = widgets.VBox([cells_row1, cells_row2, cells_row3], layout=tab_layout
 
 
 #=========
-nparticles_tab = widgets.Text(
-    value='.',
-    description='dummy:',
-    layout=tab_layout,
+np_half_conc = widgets.BoundedFloatText (
+    min=0,
+    value=1,
+    description='$T_{0.5}$',
+    disabled=False,
+    tooltip='this is a tooltip',
+    layout = Layout(width = constWidth),
 )
+np_mean_survival_time = widgets.BoundedFloatText (
+    min=0,
+    value=0,
+    description='mean surv time',
+    disabled=False,
+    layout = Layout(width = constWidth),
+)
+np_diff_coef = widgets.BoundedFloatText (
+    min=0,
+    value=0,
+    description='diffusion coef',
+    disabled=False,
+    layout = Layout(width = constWidth),
+)
+np_ratio = widgets.BoundedFloatText (
+    min=0,
+    value=0,
+    description='R',
+    disabled=False,
+    layout = Layout(width = constWidth),
+)
+nparticles_tab = widgets.VBox([np_half_conc, np_mean_survival_time, np_diff_coef, np_ratio], layout=tab_layout)
+
+#-------------------
 pkpd_tab = widgets.Text(
     value='.',
     description='dummy:',
@@ -665,43 +778,112 @@ def mcds_dir_cb(w):
     print(mcds_dir_str)
     
 mcds_dir = widgets.Text(
-    value='.',
+    value=mcds_dir_str,
     description='Directory:',
 )
 mcds_dir.on_submit(mcds_dir_cb)
 
-mcds_plot = widgets.interactive(plot_mcds, MCDS=(0, 480), continuous_update=False)
-mcds_output = mcds_plot.children[-1]
-mcds_output.layout.height = '300px'
+#mcds_plot = widgets.interactive(plot_mcds, MCDS=(0, 500), continuous_update=False)
+mcds_plot = widgets.interactive(plot_microenv, FileId=(0, 10), continuous_update=False)
+# mcds_output = mcds_plot.children[-1]
+mcds_plot.layout.width = svg_plot_size
+mcds_output.layout.height = svg_plot_size
 #mcds_plot
 
-mcds_play = widgets.Play(
-#     interval=10,
-    value=50,
-    min=0,
-    max=100,
-    step=1,
-    description="Press play",
-    disabled=False,
-)
-mcds_slider = widgets.IntSlider()
-widgets.jslink((mcds_play, 'value'), (mcds_slider, 'value'))
-widgets.HBox([mcds_play, mcds_slider])
+# mcds_play = widgets.Play(
+# #     interval=10,
+#     value=50,
+#     min=0,
+#     max=100,
+#     step=1,
+#     description="Press play",
+#     disabled=False,
+# )
+# #mcds_slider = widgets.IntSlider()
 
-mcds_tab = widgets.VBox([mcds_dir, mcds_plot, mcds_play], layout=tab_layout)
+# widgets.jslink((mcds_play, 'value'), (mcds_slider, 'value'))
+# widgets.HBox([mcds_play, mcds_slider])
+
+# mcds_tab = widgets.VBox([mcds_dir, mcds_plot, mcds_play], layout=tab_layout)
+mcds_tab = widgets.VBox([mcds_dir, mcds_plot], layout=tab_layout)
 
 #----------------------
-tabs = widgets.Tab(children=[config_tab, cells_tab, nparticles_tab, pkpd_tab, svg_tab, mcds_tab])
+xml_editor = widgets.Textarea(
+    description="",
+    disabled=False,
+    layout = widgets.Layout(border='1px solid black', width='900px', height='500px'), #tab_layout,  #Layout(min_width = '900px', min_height='300px'),
+)
+#xml_editor.value = "Mary had a lamb, yada yada...\nfleece was white yada..."
+with open('nanobio_settings.xml') as xml_filep:
+    xml_editor.value = xml_filep.read()
+xml_filep.closed
+
+write_xml_button = Button(
+    description='Save XML config file',
+    disabled=False,
+    button_style='success', # 'success', 'info', 'warning', 'danger' or ''
+    tooltip='Write XML',
+)
+
+#write_xml_button.on_click(read_config_file_cb)
+xml_tab = widgets.VBox([xml_editor,write_xml_button], layout=tab_layout)
+
+#----------------------
+tabs = widgets.Tab(children=[config_tab, cells_tab, nparticles_tab, pkpd_tab, xml_tab, svg_tab, mcds_tab])
 tab_idx = 0
 tabs.set_title(tab_idx, 'Config Basics'); tab_idx += 1
 tabs.set_title(tab_idx, 'Cells'); tab_idx += 1
 tabs.set_title(tab_idx, 'Nanoparticles'); tab_idx += 1   # nanoparticles, r'\(\eta)'
 tabs.set_title(tab_idx, 'PK/PD'); tab_idx += 1
-tabs.set_title(tab_idx, 'SVG'); tab_idx += 1
+tabs.set_title(tab_idx, 'XML'); tab_idx += 1
+tabs.set_title(tab_idx, 'SVG output'); tab_idx += 1
 tabs.set_title(tab_idx, 'Full output')
 
 run_sim = widgets.VBox([write_config_row, run_sim_row, run_output])
 
 widgets.VBox(children=[tabs,run_sim])
 
+
+
+
+# In[5]:
+
+
+pwd
+
+
+# In[8]:
+
+
+type(svg_plot)
+
+
+# In[17]:
+
+
+len(svg_plot.children)
+
+
+# In[33]:
+
+
+svg_plot.children[1].layout = Layout(width='500px',height='900px')
+
+
+# In[30]:
+
+
+svg_plot.children[0].layout = Layout(height='130px')
+
+
+# In[94]:
+
+
+dir(svg_plot)
+
+
+# In[68]:
+
+
+type(runCommand)
 
