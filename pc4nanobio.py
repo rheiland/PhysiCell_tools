@@ -1,15 +1,4 @@
 
-# coding: utf-8
-
-# In[120]:
-
-
-# %load pc4nanobio.py
-
-
-# In[53]:
-
-
 # %load pc4nanobio.py
 import ipywidgets as widgets
 from ipywidgets import Layout, Button, Box
@@ -658,14 +647,13 @@ svg_dir = widgets.Text(
 svg_dir.on_submit(svg_dir_cb)
 
 #rwh - is this where I change size of render window?? (apparently not)
-svg_plot = widgets.interactive(plot_svg, SVG=(0, 100), continuous_update=False)
+svg_plot = widgets.interactive(plot_svg, SVG=(0, 500), continuous_update=False)
 # output = svg_plot.children[-1]
 # output.layout.height = '300px'
 # output = svg_plot.children[1]
 svg_plot_size = '500px'
 svg_plot.layout.width = svg_plot_size
 svg_plot.layout.height = svg_plot_size
-#svg_plot
 
 # video-style widget - perhaps for future use
 # svg_play = widgets.Play(
@@ -815,10 +803,8 @@ mcds_dir.on_submit(mcds_dir_cb)
 
 #mcds_plot = widgets.interactive(plot_mcds, MCDS=(0, 500), continuous_update=False)
 mcds_plot = widgets.interactive(plot_microenv, FileId=(0, 10), continuous_update=False)
-# mcds_output = mcds_plot.children[-1]
 mcds_plot.layout.width = svg_plot_size
-mcds_output.layout.height = svg_plot_size
-#mcds_plot
+mcds_plot.layout.height = svg_plot_size
 
 # mcds_play = widgets.Play(
 # #     interval=10,
@@ -873,48 +859,4 @@ tabs.set_title(tab_idx, 'Full output')
 run_sim = widgets.VBox([write_config_row, run_button.w])
 
 widgets.VBox(children=[tabs,run_sim])
-
-
-
-
-# In[5]:
-
-
-pwd
-
-
-# In[8]:
-
-
-type(svg_plot)
-
-
-# In[17]:
-
-
-len(svg_plot.children)
-
-
-# In[33]:
-
-
-svg_plot.children[1].layout = Layout(width='500px',height='900px')
-
-
-# In[30]:
-
-
-svg_plot.children[0].layout = Layout(height='130px')
-
-
-# In[94]:
-
-
-dir(svg_plot)
-
-
-# In[68]:
-
-
-type(runCommand)
 
