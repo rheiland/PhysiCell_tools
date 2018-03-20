@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[104]:
+# In[120]:
 
 
 # %load pc4nanobio.py
@@ -31,7 +31,9 @@ join_our_list = "(Join/ask questions at https://groups.google.com/forum/#!forum/
 get_ipython().run_line_magic('matplotlib', 'inline')
 
 constWidth = '175px'
-tab_layout = widgets.Layout(border='2px solid black', width='900px', height='600px')
+tab_height = '600px'
+tab_height = '500px'
+tab_layout = widgets.Layout(border='2px solid black', width='900px', height=tab_height)
 #tab_layout.height = '500px'
 
 xmin = widgets.FloatText(
@@ -365,7 +367,7 @@ write_config_file = widgets.Text(
 
 #----------------------------
 run_output = widgets.Output(layout=widgets.Layout(width='900px', height='100px', border='solid'))
-run_output
+#run_output
 
 run_command_str = widgets.Text(
     value='pc-nb nanobio_settings.xml',
@@ -405,28 +407,30 @@ def run_cb(b):
 
     if my_proc.returncode != 0:
         print("Exited with error code:", my_proc.returncode)
-    
-#run_button = RunCommand(start_func=run_sim)  # optionally: , done_func=read_data
-run_button = Button(
-    description='Run',
-    disabled=False,
-    button_style='success', # 'success', 'info', 'warning', 'danger' or ''
-    tooltip='Run simulation',
-)
-run_button.on_click(run_cb)
 
-def kill_cb(b):
-    global my_proc
-    print('kill sim...')
-    my_proc.terminate()
+        
+run_button = RunCommand(start_func=run_sim)  # optionally: , done_func=read_data
+
+# run_button = Button(
+#     description='Run',
+#     disabled=False,
+#     button_style='success', # 'success', 'info', 'warning', 'danger' or ''
+#     tooltip='Run simulation',
+# )
+# run_button.on_click(run_cb)
+
+# def kill_cb(b):
+#     global my_proc
+#     print('kill sim...')
+#     my_proc.terminate()
     
-kill_button = Button(
-    description='Kill',
-    disabled=False,
-    button_style='danger', # 'success', 'info', 'warning', 'danger' or ''
-    tooltip='Kill simulation',
-)
-kill_button.on_click(kill_cb)
+# kill_button = Button(
+#     description='Kill',
+#     disabled=False,
+#     button_style='danger', # 'success', 'info', 'warning', 'danger' or ''
+#     tooltip='Kill simulation',
+# )
+# kill_button.on_click(kill_cb)
 
 read_config_row = widgets.HBox([read_config_button, read_config_file])
 #svg_output_row = widgets.HBox([toggle_svg, svg_t0, svg_interval])
@@ -434,7 +438,8 @@ read_config_row = widgets.HBox([read_config_button, read_config_file])
 svg_mat_output_row = widgets.HBox([toggle_svg,svg_interval, toggle_mcds,mcds_interval])
 write_config_row = widgets.HBox([write_config_button, write_config_file])
 #run_sim_row = widgets.HBox([run_button, run_command_str, kill_button])
-run_sim_row = widgets.HBox([run_button, run_command_str])
+# run_sim_row = widgets.HBox([run_button, run_command_str])
+# run_sim_row = widgets.HBox([run_button.w])  # need ".w" for the custom RunCommand widget
 
 toggle_2D_seed_row = widgets.HBox([toggle2D, toggle_prng, prng_seed])
 config_tab = widgets.VBox([read_config_row, toggle_2D_seed_row, x_row,y_row,z_row,  tmax, omp_threads,  
@@ -461,7 +466,7 @@ def plot_microenv(FileId):
     global current_idx, axes_max
     global svg_dir_str
     #  dir = svg_dir.value
-    print('debug> plot_microenv: idx=',FileId)
+#     print('debug> plot_microenv: idx=',FileId)
     fname = svg_dir_str + "/output00000000_microenvironment0.mat"  # % idx
     fname = svg_dir_str + "/output%08d_microenvironment0.mat" % FileId
 
@@ -472,10 +477,22 @@ def plot_microenv(FileId):
     f = M[field_index,:]   # 4=tumor cells field, 5=blood vessel density, 6=growth substrate
     #plt.clf()
     #my_plot = plt.imshow(f.reshape(400,400), cmap='jet', extent=[0,20, 0,20])
-    plt.figure(figsize=(7, 7))
-    my_plot = plt.imshow(f.reshape(100,100), cmap='jet', extent=[0,20, 0,20])
-    plt.colorbar(my_plot)
-    plt.title("Oxygen")
+    
+    fig = plt.figure(figsize=(6,6))
+#     fig.set_tight_layout(True)
+    ax = plt.axes([0, 0.05, 0.9, 0.9 ]) #left, bottom, width, height
+    cmap = plt.cm.Blues   # 'jet'
+    cmap = plt.cm.YlOrBr
+    im = ax.imshow(f.reshape(100,100), interpolation='nearest', cmap=cmap, extent=[0,20, 0,20])
+    ax.grid(False)
+    ax.set_title('Oxygen')
+    cax = plt.axes([0.95, 0.05, 0.05,0.9 ])
+    plt.colorbar(mappable=im, cax=cax)
+    
+    
+#     my_plot = plt.imshow(f.reshape(100,100), cmap='jet', extent=[0,20, 0,20])
+#     plt.colorbar(my_plot)
+#     plt.title("Oxygen")
     #plt.show()
 
 
@@ -512,7 +529,7 @@ def plot_svg(SVG):
 #    print("keys=",child.attrib.keys())
     if use_defaults and ('width' in child.attrib.keys()):
       axes_max = float(child.attrib['width'])
-      print("debug> found width --> axes_max =", axes_max)
+#       print("debug> found width --> axes_max =", axes_max)
     if child.text and "Current time" in child.text:
       svals = child.text.split()
       #title_str = "(" + str(current_idx) + ") Current time: " + svals[2] + "d, " + svals[4] + "h, " + svals[7] + "m"
@@ -598,13 +615,26 @@ def plot_svg(SVG):
 #  print("rvals.min, max=",rvals.min(),rvals.max())
 
 #rwh - is this where I change size of render window?? (YES - yipeee!)
-  plt.figure(figsize=(7, 7))
+#   plt.figure(figsize=(6, 6))
 #   plt.cla()
   title_str += " (" + str(num_cells) + " agents)"
-  plt.title(title_str)
+#   plt.title(title_str)
+#   plt.xlim(axes_min,axes_max)
+#   plt.ylim(axes_min,axes_max)
+#   plt.scatter(xvals,yvals, s=rvals*scale_radius, c=rgbs)
+    
+  fig = plt.figure(figsize=(6,6))
+  ax = plt.axes([0, 0.05, 0.9, 0.9 ]) #left, bottom, width, height
+
+#   im = ax.imshow(f.reshape(100,100), interpolation='nearest', cmap=cmap, extent=[0,20, 0,20])
+#   ax.xlim(axes_min,axes_max)
+#   ax.ylim(axes_min,axes_max)
+  ax.scatter(xvals,yvals, s=rvals*scale_radius, c=rgbs)
   plt.xlim(axes_min,axes_max)
   plt.ylim(axes_min,axes_max)
-  plt.scatter(xvals,yvals, s=rvals*scale_radius, c=rgbs)
+#   ax.grid(False)
+  ax.set_title(title_str)
+    
 #plt.xlim(0,2000)  # TODO - get these values from width,height in .svg at top
 #plt.ylim(0,2000)
 #  plt.pause(time_delay)
@@ -613,7 +643,7 @@ def plot_svg(SVG):
 
 # keep last plot displayed
 #plt.ioff()
-  plt.show()
+#   plt.show()
 
 def svg_dir_cb(w):
     global svg_dir_str
@@ -632,7 +662,7 @@ svg_plot = widgets.interactive(plot_svg, SVG=(0, 100), continuous_update=False)
 # output = svg_plot.children[-1]
 # output.layout.height = '300px'
 # output = svg_plot.children[1]
-svg_plot_size = '600px'
+svg_plot_size = '500px'
 svg_plot.layout.width = svg_plot_size
 svg_plot.layout.height = svg_plot_size
 #svg_plot
@@ -665,7 +695,7 @@ svg_plot.layout.height = svg_plot_size
 #svg_anim = widgets.HBox([svg_play, svg_slider])
 
 #svg_tab = widgets.VBox([svg_dir, svg_plot, svg_anim], layout=tab_layout)
-svg_tab = widgets.VBox([svg_dir, svg_plot], layout=tab_layout)
+svg_tab = widgets.HBox([svg_dir, svg_plot], layout=tab_layout)
 
 #svg_tab = widgets.VBox([svg_dir, svg_anim], layout=tab_layout)
 #---------------------
@@ -805,7 +835,7 @@ mcds_output.layout.height = svg_plot_size
 # widgets.HBox([mcds_play, mcds_slider])
 
 # mcds_tab = widgets.VBox([mcds_dir, mcds_plot, mcds_play], layout=tab_layout)
-mcds_tab = widgets.VBox([mcds_dir, mcds_plot], layout=tab_layout)
+mcds_tab = widgets.HBox([mcds_dir, mcds_plot], layout=tab_layout)
 
 #----------------------
 xml_editor = widgets.Textarea(
@@ -839,7 +869,8 @@ tabs.set_title(tab_idx, 'XML'); tab_idx += 1
 tabs.set_title(tab_idx, 'SVG output'); tab_idx += 1
 tabs.set_title(tab_idx, 'Full output')
 
-run_sim = widgets.VBox([write_config_row, run_sim_row, run_output])
+# run_sim = widgets.VBox([write_config_row, run_sim_row, run_output])
+run_sim = widgets.VBox([write_config_row, run_button.w])
 
 widgets.VBox(children=[tabs,run_sim])
 
