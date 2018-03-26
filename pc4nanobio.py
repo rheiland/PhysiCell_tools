@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[24]:
+# In[74]:
 
 
 # %load pc4nanobio.py
@@ -9,7 +9,7 @@
 # %load pc4nanobio.py
 import ipywidgets as widgets
 from ipywidgets import Layout, Button, Box
-#from ipywidgets import interact, interactive
+#from ipywidgets import interact, interactiveel
 from subprocess import Popen, PIPE, STDOUT
 from hublib.cmd import runCommand
 from hublib.ui import RunCommand
@@ -27,49 +27,48 @@ join_our_list = "(Join/ask questions at https://groups.google.com/forum/#!forum/
 get_ipython().run_line_magic('matplotlib', 'inline')
 
 constWidth = '175px'
-tab_height = '600px'
+constWidth = '160px'
+tab_height = '400px'
 tab_height = '500px'
-tab_layout = widgets.Layout(border='2px solid black', width='900px', height=tab_height)
+tab_layout = widgets.Layout( width='800px',   # border='2px solid black',
+                            height=tab_height, overflow_y='scroll',)
+np_tab_layout = widgets.Layout( width='800px',  # border='2px solid black',
+                               height='350px', overflow_y='scroll',)
 #tab_layout.height = '500px'
 
-my_domain = [0,0,-10, 2000,2000,10, 20,20,20]  # [x,y,zmin,  x,y,zmax, x,y,zdelta]
+# my_domain = [0,0,-10, 2000,2000,10, 20,20,20]  # [x,y,zmin,  x,y,zmax, x,y,zdelta]
+label_domain = widgets.Label('Domain (microns)')
 xmin = widgets.FloatText(
-    value= my_domain[0],
     description='$X_{min}$',
     disabled=False,
     layout = Layout(width = constWidth),
 )
 
 ymin = widgets.FloatText(
-    value= my_domain[1],
     description='$Y_{min}$',
     disabled=False,
     layout = Layout(width = constWidth),
 )
 
 zmin = widgets.FloatText(
-    value= my_domain[2],
     description='$Z_{min}$',
     disabled= True,
     layout = Layout(width = constWidth),
 )
     
 xmax = widgets.FloatText(
-    value= my_domain[3],
     description='$X_{max}$',
     disabled=False,
     layout = Layout(width = constWidth),
 )
 
 ymax = widgets.FloatText(
-    value= my_domain[4],
     description='$Y_{max}$',
     disabled=False,
     layout = Layout(width = constWidth),
 )
 
 zmax = widgets.FloatText(
-    value= my_domain[5],
     description='$Z_{max}$',
     disabled=True,
     layout = Layout(width = constWidth),
@@ -78,7 +77,6 @@ zmax = widgets.FloatText(
 tmax = widgets.BoundedFloatText(
     min = 0.,
     max = 100000000,
-    value= 10000.,
     description='$Time_{max}$',
     disabled=False,
     layout = Layout(width = constWidth),
@@ -86,7 +84,6 @@ tmax = widgets.BoundedFloatText(
     
 xdelta = widgets.BoundedFloatText(
     min = 1.,
-    value= my_domain[6],
     description='$X_{delta}$',
     disabled=False,
     layout = Layout(width = constWidth),
@@ -94,7 +91,6 @@ xdelta = widgets.BoundedFloatText(
 
 ydelta = widgets.BoundedFloatText(
     min = 1.,
-    value= my_domain[7],
     description='$Y_{delta}$',
     disabled=False,
     layout = Layout(width = constWidth),
@@ -102,7 +98,6 @@ ydelta = widgets.BoundedFloatText(
 
 zdelta = widgets.BoundedFloatText(
     min = 1.,
-    value= my_domain[8],
     description='$Z_{delta}$',
     disabled=True,
     layout = Layout(width = constWidth),
@@ -110,14 +105,12 @@ zdelta = widgets.BoundedFloatText(
     
 tdelta = widgets.BoundedFloatText(
     min = 0.01,
-    value= 10.,
     description='$Time_{delta}$',
     disabled=False,
     layout = Layout(width = constWidth),
 )
 
 toggle2D = widgets.Checkbox(
-    value=True,
     description='2-D',
     disabled=False,
     layout = Layout(width = constWidth),
@@ -138,47 +131,40 @@ toggle2D.observe(toggle2D_cb)
 x_row = widgets.HBox([xmin,xmax,xdelta])
 y_row = widgets.HBox([ymin,ymax,ydelta])
 z_row = widgets.HBox([zmin,zmax,zdelta])
-box_layout = Layout(display='flex',
-                    flex_flow='column',
-                    align_items='stretch',
-                    border='solid',
-                    width='90%')
+# box_layout = Layout(display='flex',
+#                     flex_flow='column',
+#                     align_items='stretch',
+#                     border='1px solid black',
+#                     width='90%')
 #z_row = Box(children=items, layout=box_layout)
 #z_row = Box([toggle2D,zmin,zmax,zdelta], layout=box_layout)
 #domain_range = Box([x_row,y_row,z_row], layout=box_layout)
 
 tumor_radius = widgets.BoundedFloatText(
-    value=100,
     min=1,
     max=99999,  # TODO - wth
     step=1,
-    description='Tumor Radius',
+    description='Tumor Radius', style={'description_width': 'initial'},
     disabled=False,
     layout = Layout(width = constWidth),
-
 )
 
 omp_threads = widgets.BoundedIntText(
-    value=8,
     min=1,
     step=1,
     description='# threads',
     disabled=False,
     layout = Layout(width = constWidth),
-
 )
 
 toggle_prng = widgets.Checkbox(
-    value=False,
-    description='Seed PRNG',
+    description='Seed PRNG', style={'description_width': 'initial'},  # e.g. 'initial'  '120px'
     disabled=False,
     layout = Layout(width = constWidth),
-    #layout = Layout(width = '190px'),
 )
 prng_seed = widgets.BoundedIntText(
     min = 1,
-    value = 13,
-    description='Seed',
+    description='Seed', 
     disabled=True,
     layout = Layout(width = constWidth),
 )
@@ -195,8 +181,8 @@ toggle_prng.observe(toggle_prng_cb)
 #----- Output ------
 output_dir_str = 'output'  # match the "value" of the widget below
 output_dir = widgets.Text(
-    value='output',
-    description='Output Dir:',
+#     value='output',
+    description='Output Dir',
 )
 def config_output_dir_cb(w):
     global output_dir_str
@@ -206,14 +192,12 @@ def config_output_dir_cb(w):
 output_dir.on_submit(config_output_dir_cb)
 
 toggle_svg = widgets.Checkbox(
-    value=True,
     description='SVG',
     disabled=False,
     layout = Layout(width = constWidth),
 )
 svg_t0 = widgets.BoundedFloatText (
     min=0,
-    value=0.0,
     description='$T_0$',
     disabled=False,
     layout = Layout(width = constWidth),
@@ -221,7 +205,6 @@ svg_t0 = widgets.BoundedFloatText (
 svg_interval = widgets.BoundedIntText(
     min=1,
     max=99999999,
-    value=5,
     description='interval',
     disabled=False,
     layout = Layout(width = constWidth),
@@ -238,13 +221,12 @@ toggle_svg.observe(toggle_svg_cb)
 
 
 toggle_mcds = widgets.Checkbox(
-    value=False,
+#     value=False,
     description='Full',
     disabled=False,
     layout = Layout(width = constWidth),
 )
 mcds_t0 = widgets.FloatText(
-    value=0.0,
     description='$T_0$',
     disabled=True,
     layout = Layout(width = constWidth),
@@ -252,7 +234,6 @@ mcds_t0 = widgets.FloatText(
 mcds_interval = widgets.BoundedIntText(
     min=0,
     max=99999999,
-    value=5,
     description='interval',
     disabled=True,
     layout = Layout(width = constWidth),
@@ -290,9 +271,9 @@ def read_config_file_cb(b):
     tumor_radius.value = float(root.find(".//radius").text)
     omp_threads.value = int(root.find(".//omp_num_threads").text)
     
-    output_dir.value = (root.find(".//folder").text)
-    svg_interval.value = int(root.find(".//interval").text)
-    mcds_interval.value = int(root.find(".//interval").text)
+#     output_dir.value = (root.find(".//folder").text)
+    svg_interval.value = int(root.find(".//SVG").find(".//interval").text)
+    mcds_interval.value = int(root.find(".//full_data").find(".//interval").text)
     
     max_birth_rate.value = float(root.find(".//max_birth_rate").text)
     o2_prolif_sat.value = float(root.find(".//o2_proliferation_saturation").text)
@@ -341,7 +322,7 @@ def write_config_file_cb(b):
     root.find(".//radius").text = str(tumor_radius.value)
     root.find(".//omp_num_threads").text = str(omp_threads.value)
     
-    root.find(".//folder").text = str(output_dir.value)
+#     root.find(".//folder").text = str(output_dir.value)
     
     
 #    user_details = ET.SubElement(root, "user_details")
@@ -447,8 +428,8 @@ write_config_row = widgets.HBox([write_config_button, write_config_file])
 # run_sim_row = widgets.HBox([run_button.w])  # need ".w" for the custom RunCommand widget
 
 toggle_2D_seed_row = widgets.HBox([toggle2D, toggle_prng, prng_seed])
-config_tab = widgets.VBox([read_config_row, toggle_2D_seed_row, x_row,y_row,z_row,  tmax, omp_threads,  
-                           tumor_radius, output_dir,svg_mat_output_row], layout=tab_layout)
+config_tab = widgets.VBox([read_config_row, toggle_2D_seed_row, label_domain,x_row,y_row,z_row,  tmax, omp_threads,  
+                           tumor_radius,svg_mat_output_row], layout=tab_layout)  # output_dir
 
 
 #----------------------------------------------
@@ -467,18 +448,21 @@ scale_radius = 1.0
 svg_dir_str = output_dir_str
 mcds_dir_str = output_dir_str
 
-def plot_microenv(FileId):
-    global current_idx, axes_max
+field_index = 4
+def plot_substrate(FileId):
+    global current_idx, axes_max, gFileId, field_index
     global svg_dir_str
     #  dir = svg_dir.value
-#     print('debug> plot_microenv: idx=',FileId)
+#     print('debug> plot_substrate: idx=',FileId)
+    gFileId = FileId
     fname = "output%08d_microenvironment0.mat" % FileId
     fullname = svg_dir_str + "/" + fname
 
     info_dict = {}
     scipy.io.loadmat(fullname, info_dict)
     M = info_dict['multiscale_microenvironment']
-    field_index = 9
+#     global_field_index = int(mcds_field.value)
+#     print('plot_substrate: field_index =',field_index)
     f = M[field_index,:]   # 4=tumor cells field, 5=blood vessel density, 6=growth substrate
     #plt.clf()
     #my_plot = plt.imshow(f.reshape(400,400), cmap='jet', extent=[0,20, 0,20])
@@ -487,7 +471,7 @@ def plot_microenv(FileId):
 #     fig.set_tight_layout(True)
 #     ax = plt.axes([0, 0.05, 0.9, 0.9 ]) #left, bottom, width, height
 #     ax = plt.axes([0, 0.0, 1, 1 ])
-    cmap = plt.cm.viridis # Blues, YlOrBr, ...
+#     cmap = plt.cm.viridis # Blues, YlOrBr, ...
 #     im = ax.imshow(f.reshape(100,100), interpolation='nearest', cmap=cmap, extent=[0,20, 0,20])
 #     ax.grid(False)
 
@@ -496,13 +480,13 @@ def plot_microenv(FileId):
     #xvec.size
     #xvec.shape
     num_contours = 30
-    my_plot = plt.contourf(xvec,xvec,M[9,:].reshape(100,100), num_contours, cmap='viridis')
+    my_plot = plt.contourf(xvec,xvec,M[field_index,:].reshape(100,100), num_contours, cmap=field_cmap.value) #'viridis'
     plt.colorbar(my_plot)
     axes_min = 0
     axes_max = 2000
     plt.xlim(axes_min,axes_max)
     plt.ylim(axes_min,axes_max)
-    plt.title(fname)
+#     plt.title(fname)
 #     ax.set_title(fname)
 #     plt.axis('equal')
     #plt.show()
@@ -664,7 +648,7 @@ def svg_dir_cb(w):
     
 svg_dir = widgets.Text(
     value=svg_dir_str,
-    description='Directory:',
+    description='Directory',
 )
 #svg_dir.observe(svg_dir_cb)
 svg_dir.on_submit(svg_dir_cb)
@@ -713,122 +697,177 @@ svg_tab = widgets.HBox([svg_dir, svg_plot], layout=tab_layout)
 
 cell_name = widgets.Text(
     value='untreated cancer',
-    description='Name:',
+    description='Name',
 )
+label_cycle = widgets.Label('Cycle:')
 max_birth_rate = widgets.BoundedFloatText (
     min=0,
-    value=0.0072,
-    description='max birth rate',
+    description='Max birth rate', style={'description_width': 'initial'},
     disabled=False,
     layout = Layout(width = constWidth),
 )
-
 o2_prolif_sat = widgets.BoundedFloatText (
     min=0,
-    value=38,
-    description='$O_2$: prolif sat',
+    description='$O_2$: Prolif sat',
     disabled=False,
     layout = Layout(width = constWidth),
 )
 o2_prolif_thresh = widgets.BoundedFloatText (
     min=0,
-    value=5,
-    description='prolif thresh',
+    description='Prolif thresh',
+    disabled=False,
+    layout = Layout(width = constWidth),
+)
+o2_prolif_ref = widgets.BoundedFloatText (
+    min=0,
+    description='Ref',
     disabled=False,
     layout = Layout(width = constWidth),
 )
 
-glucose_prolif_ref = widgets.BoundedFloatText (
-    min=0,
-    value=1,
-    description='$G$: prolif ref',
-    disabled=False,
-    layout = Layout(width = constWidth),
-)
 glucose_prolif_sat = widgets.BoundedFloatText (
     min=0,
-    value=1,
-    description='prolif sat',
+    description='$G$: Prolif sat',
     disabled=False,
     layout = Layout(width = constWidth),
 )
 glucose_prolif_thresh = widgets.BoundedFloatText (
     min=0,
-    value=0,
-    description='prolif thresh',
+    description='Prolif thresh',
     disabled=False,
     layout = Layout(width = constWidth),
 )
+glucose_prolif_ref = widgets.BoundedFloatText (
+    min=0,
+    description='Ref',
+    disabled=False,
+    layout = Layout(width = constWidth),
+)
+#----
+label_necrosis = widgets.Label('Necrosis:')
+label_apoptosis = widgets.Label('Apoptosis:')
+label_metabolism = widgets.Label('Metabolism:')
+label_motility = widgets.Label('Motility:')
+label_mechanics = widgets.Label('Mechanics:')
+label_hypoxia = widgets.Label('Hypoxia:')
+label_secretion = widgets.Label('Secretion:')
 
-cells_row1 = widgets.HBox([cell_name, max_birth_rate])
-cells_row2 = widgets.HBox([o2_prolif_sat, o2_prolif_thresh])
-cells_row3 = widgets.HBox([glucose_prolif_ref, glucose_prolif_sat, glucose_prolif_thresh])
-cells_tab = widgets.VBox([cells_row1, cells_row2, cells_row3], layout=tab_layout)
 
+
+cells_row1 = widgets.HBox([cell_name])
+cells_row2 = widgets.HBox([o2_prolif_sat, o2_prolif_thresh, o2_prolif_ref])
+cells_row3 = widgets.HBox([glucose_prolif_sat, glucose_prolif_thresh, glucose_prolif_ref])
+cells_tab = widgets.VBox([cells_row1,label_cycle,max_birth_rate,cells_row2, cells_row3,
+                label_necrosis,max_birth_rate,cells_row2, cells_row3,
+                label_apoptosis,label_metabolism,label_motility,
+                label_mechanics,label_hypoxia,label_secretion]) #, layout=tab_layout)
 
 #=========
-np1_half_conc = widgets.BoundedFloatText (
-    min=0,
-    value=1,
-    description='$T_{0.5}$',
-    disabled=False,
-    tooltip='this is a tooltip',
-    layout = Layout(width = constWidth),
-)
-np1_mean_survival_time = widgets.BoundedFloatText (
-    min=0,
-    value=0,
-    description='mean surv time',
-    disabled=False,
-    layout = Layout(width = constWidth),
-)
-np1_diff_coef = widgets.BoundedFloatText (
-    min=0,
-    value=0,
-    description='diffusion coef',
-    disabled=False,
-    layout = Layout(width = constWidth),
-)
-np1_ratio = widgets.BoundedFloatText (
-    min=0,
-    value=0,
-    description='R',
-    disabled=False,
-    layout = Layout(width = constWidth),
-)
-np1_tab = widgets.VBox([np1_half_conc, np1_mean_survival_time, np1_diff_coef, np1_ratio], layout=tab_layout)
+half_conc_desc = '$T_{0.5}$'
+diffusion_coef_desc = 'Diffusion coef'
+survival_desc = 'Survival lifetime'
+binding_desc = 'ECM binding rate'
+unbinding_desc = 'ECM unbinding rate'
+sat_conc_desc = 'ECM saturation conc'
+desc_style = {'description_width': '150px'}  # vs. 'initial'
+
+label_PK = widgets.Label('Pharmacokinetics:')
+pk_param_width = '270px'
+diffusion_coef_units = widgets.HTMLMath(value=r"$\frac{\mu M^2}{min}$")
+survival_lifetime_units = widgets.HTMLMath(value=r"$min$")
+min_inv_units = widgets.HTMLMath(value=r"$\frac{1}{min}$")
 
 #------------
-#=========
-np2_half_conc = widgets.BoundedFloatText (
+np1_diff_coef = widgets.BoundedFloatText (
     min=0,
-    value=1,
-    description='$T_{0.5}$',
+    description= diffusion_coef_desc, style=desc_style,
     disabled=False,
-    layout = Layout(width = constWidth),
+    layout = Layout(width = pk_param_width),  #flex_flow='row',align_items='stretch'),
 )
-np2_mean_survival_time = widgets.BoundedFloatText (
+np1_survival_lifetime = widgets.BoundedFloatText (
     min=0,
-    value=0,
-    description='mean surv time',
+    description= survival_desc, style=desc_style,
     disabled=False,
-    layout = Layout(width = constWidth),
+    layout = Layout(width = pk_param_width),  #flex_flow='row',align_items='stretch'),
 )
+np1_binding_rate = widgets.BoundedFloatText (
+    min=0,
+    description= binding_desc, style=desc_style,
+    disabled=False,
+    layout = Layout(width = pk_param_width),
+)
+np1_unbinding_rate = widgets.BoundedFloatText (
+    min=0,
+    description= unbinding_desc, style=desc_style,
+    disabled=False,
+    layout = Layout(width = pk_param_width),
+)
+np1_saturation_conc = widgets.BoundedFloatText (
+    min=0,
+    description= sat_conc_desc, style=desc_style,
+    disabled=False,
+    layout = Layout(width = pk_param_width),
+)
+#box_layout = Layout(display='flex',flex_flow='column',align_items='stretch',border='1px solid black',width='30%')
+pk_widgets_width = '320px'
+np1_diff_coef2 = widgets.HBox([np1_diff_coef,diffusion_coef_units], layout=Layout(width=pk_widgets_width),)
+np1_survival_lifetime2 = widgets.HBox([np1_survival_lifetime,survival_lifetime_units], layout=Layout(width=pk_widgets_width),)
+np1_binding_rate2 = widgets.HBox([np1_binding_rate,min_inv_units], layout=Layout(width=pk_widgets_width),)
+np1_unbinding_rate2 = widgets.HBox([np1_unbinding_rate,min_inv_units], layout=Layout(width=pk_widgets_width),)
+#np1_sat_conc2 = widgets.HBox([np1_saturation_conc,min_inv_units], layout=Layout(width=pk_widgets_width),)
+
+np1_PK_params = widgets.VBox([label_PK,np1_diff_coef2,np1_survival_lifetime2,np1_binding_rate2,np1_unbinding_rate2,np1_saturation_conc]) #, layout=box_layout)
+
+label_PD = widgets.Label('Pharmacodynamics:')
+
+np1_tab = widgets.VBox([np1_PK_params, label_PD], layout=np_tab_layout)
+
+
+#------------
+#------------
 np2_diff_coef = widgets.BoundedFloatText (
     min=0,
-    value=0,
-    description='diffusion coef',
+    description= diffusion_coef_desc, style=desc_style,
     disabled=False,
-    layout = Layout(width = constWidth),
+    layout = Layout(width = pk_param_width),  #flex_flow='row',align_items='stretch'),
 )
-np2_ratio = widgets.BoundedFloatText (
+np2_survival_lifetime = widgets.BoundedFloatText (
     min=0,
-    value=0,
-    description='R',
+    description= survival_desc, style=desc_style,
     disabled=False,
-    layout = Layout(width = constWidth),
+    layout = Layout(width = pk_param_width),  #flex_flow='row',align_items='stretch'),
 )
-np2_tab = widgets.VBox([np2_half_conc, np2_mean_survival_time, np2_diff_coef, np2_ratio], layout=tab_layout)
+np2_binding_rate = widgets.BoundedFloatText (
+    min=0,
+    description= binding_desc, style=desc_style,
+    disabled=False,
+    layout = Layout(width = pk_param_width),
+)
+np2_unbinding_rate = widgets.BoundedFloatText (
+    min=0,
+    description= unbinding_desc, style=desc_style,
+    disabled=False,
+    layout = Layout(width = pk_param_width),
+)
+np2_saturation_conc = widgets.BoundedFloatText (
+    min=0,
+    description= sat_conc_desc, style=desc_style,
+    disabled=False,
+    layout = Layout(width = pk_param_width),
+)
+#box_layout = Layout(display='flex',flex_flow='column',align_items='stretch',border='1px solid black',width='30%')
+np2_diff_coef2 = widgets.HBox([np2_diff_coef,diffusion_coef_units], layout=Layout(width=pk_widgets_width),)
+np2_survival_lifetime2 = widgets.HBox([np2_survival_lifetime,survival_lifetime_units], layout=Layout(width=pk_widgets_width),)
+np2_binding_rate2 = widgets.HBox([np2_binding_rate,min_inv_units], layout=Layout(width=pk_widgets_width),)
+np2_unbinding_rate2 = widgets.HBox([np2_unbinding_rate,min_inv_units], layout=Layout(width=pk_widgets_width),)
+
+np2_PK_params = widgets.VBox([label_PK,np2_diff_coef2,np2_survival_lifetime2,np2_binding_rate2,
+                              np2_unbinding_rate2,np2_saturation_conc]) #, layout=box_layout)
+
+label_PD = widgets.Label('Pharmacodynamics:')
+
+
+np2_tab = widgets.VBox([np2_PK_params, label_PD], layout=np_tab_layout)
 
 #-------------------
 xforms_tab = widgets.Text(
@@ -836,6 +875,12 @@ xforms_tab = widgets.Text(
     description='dummy:',
     layout=tab_layout,
 )
+np_tab = widgets.Tab(children=[np1_tab, np2_tab, xforms_tab])
+np_tab.set_title(0, 'Preform (spherical)')
+np_tab.set_title(1, 'Reconfig (rod)')
+np_tab.set_title(2, 'Transformations')
+
+
 
 #--------------------
 
@@ -852,12 +897,12 @@ def mcds_dir_cb(w):
     
 mcds_dir = widgets.Text(
     value=mcds_dir_str,
-    description='Directory:',
+    description='Directory',
 )
 mcds_dir.on_submit(mcds_dir_cb)
 
 #mcds_plot = widgets.interactive(plot_mcds, MCDS=(0, 500), continuous_update=False)
-mcds_plot = widgets.interactive(plot_microenv, FileId=(0, 100), continuous_update=False)
+mcds_plot = widgets.interactive(plot_substrate, FileId=(0, 100), continuous_update=False)
 mcds_plot.layout.width = svg_plot_size
 mcds_plot.layout.height = svg_plot_size
 
@@ -875,8 +920,48 @@ mcds_plot.layout.height = svg_plot_size
 # widgets.jslink((mcds_play, 'value'), (mcds_slider, 'value'))
 # widgets.HBox([mcds_play, mcds_slider])
 
+mcds_field = widgets.Dropdown(
+    options=['1', '2', '3','4','5','6'],
+    value='1',
+    description='Field',
+    disabled=False,
+    layout = Layout(width = constWidth),
+)
+def mcds_field_cb(b):
+    global field_index
+    field_index = int(mcds_field.value) + 3  # match actual (0-offset) field in data
+#     print(gFileId)
+#     plot_substrate(gFileId)  # argh, this will create a *new* plot
+    
+mcds_field.observe(mcds_field_cb)
+
+field_cmap = widgets.Text(
+    value='viridis',
+    description='Colormap',
+    layout = Layout(width = constWidth),
+)
+toggle_field_cmap_fixed = widgets.Checkbox(
+    disabled=False,
+    description='Fix',
+    layout = Layout(width = constWidth2),
+)
+field_cmap_fixed_min = widgets.FloatText (
+    description='Min',
+    step=0,
+    disabled=True,
+    layout = Layout(width = constWidth2),
+)
+field_cmap_fixed_max = widgets.FloatText (
+    description='Max',
+    disabled=True,
+    layout = Layout(width = constWidth2),
+)
+
+field_cmap_row2 = widgets.HBox([field_cmap, toggle_field_cmap_fixed])
+field_cmap_row3 = widgets.HBox([field_cmap_fixed_min,field_cmap_fixed_max])
 # mcds_tab = widgets.VBox([mcds_dir, mcds_plot, mcds_play], layout=tab_layout)
-mcds_tab = widgets.HBox([mcds_dir, mcds_plot], layout=tab_layout)
+mcds_params = widgets.VBox([mcds_dir, mcds_field, field_cmap_row2,field_cmap_row3])
+mcds_tab = widgets.HBox([mcds_params, mcds_plot], layout=tab_layout)
 
 #----------------------
 xml_editor = widgets.Textarea(
@@ -900,20 +985,18 @@ write_xml_button = Button(
 xml_tab = widgets.VBox([xml_editor,write_xml_button], layout=tab_layout)
 
 #----------------------
-tabs = widgets.Tab(children=[config_tab, cells_tab, np1_tab, np2_tab, xforms_tab, xml_tab, svg_tab, mcds_tab])
+tabs = widgets.Tab(children=[config_tab, cells_tab, np_tab, svg_tab, mcds_tab])  # xml_tab
 tab_idx = 0
 tabs.set_title(tab_idx, 'Config Basics'); tab_idx += 1
 tabs.set_title(tab_idx, 'Cells'); tab_idx += 1
-tabs.set_title(tab_idx, 'NP Preform'); tab_idx += 1   # nanoparticles, r'\(\eta)'
-tabs.set_title(tab_idx, 'NP Reconfig'); tab_idx += 1
-tabs.set_title(tab_idx, 'Xforms'); tab_idx += 1
-tabs.set_title(tab_idx, 'XML'); tab_idx += 1
-tabs.set_title(tab_idx, 'SVG output'); tab_idx += 1
-tabs.set_title(tab_idx, 'Microenv')
+tabs.set_title(tab_idx, 'Nanoparticles'); tab_idx += 1
+# tabs.set_title(tab_idx, 'XML'); tab_idx += 1
+tabs.set_title(tab_idx, 'SVG'); tab_idx += 1
+tabs.set_title(tab_idx, 'Substrates')
 
 # run_sim = widgets.VBox([write_config_row, run_sim_row, run_output])
 run_sim = widgets.VBox([write_config_row, run_button.w])
 
-widgets.VBox(children=[tabs,run_sim])
+widgets.VBox(children=[tabs,run_sim], layout=tab_layout)
 
 
