@@ -1,15 +1,14 @@
 
 # coding: utf-8
 
-# In[74]:
+# In[2]:
 
 
-# %load pc4nanobio.py
-
+# %load bin/pc4nanobio.py
 # %load pc4nanobio.py
 import ipywidgets as widgets
-from ipywidgets import Layout, Button, Box
-#from ipywidgets import interact, interactiveel
+from ipywidgets import Layout, Button, Box, HBox, VBox, BoundedFloatText
+#from ipywidgets import interact, interactive
 from subprocess import Popen, PIPE, STDOUT
 from hublib.cmd import runCommand
 from hublib.ui import RunCommand
@@ -18,7 +17,7 @@ import xml.etree.ElementTree as ET
 import matplotlib.pyplot as plt
 import matplotlib.colors as mplc
 import scipy.io
-import sys, os, glob, random, math
+import sys, os, glob, random, math, pathlib
 import numpy as np
 from collections import deque
 
@@ -26,8 +25,17 @@ join_our_list = "(Join/ask questions at https://groups.google.com/forum/#!forum/
 
 get_ipython().run_line_magic('matplotlib', 'inline')
 
-constWidth = '175px'
-constWidth = '160px'
+#===== Units =====
+micron_units = widgets.HTMLMath(value=r"$\mu M$")
+diffusion_coef_units = widgets.HTMLMath(value=r"$\frac{\mu M^2}{min}$")
+survival_lifetime_units = widgets.HTMLMath(value=r"$min$")
+min_units = widgets.HTMLMath(value=r"$min$")
+min_inv_units = widgets.HTMLMath(value=r"$\frac{1}{min}$")
+mmHg_units = widgets.HTMLMath(value=r"$mmHg$")
+
+constWidth = '180px'
+constWidth2 = '150px'
+constWidth3 = '200px'
 tab_height = '400px'
 tab_height = '500px'
 tab_layout = widgets.Layout( width='800px',   # border='2px solid black',
@@ -37,82 +45,61 @@ np_tab_layout = widgets.Layout( width='800px',  # border='2px solid black',
 #tab_layout.height = '500px'
 
 # my_domain = [0,0,-10, 2000,2000,10, 20,20,20]  # [x,y,zmin,  x,y,zmax, x,y,zdelta]
-label_domain = widgets.Label('Domain (microns)')
+label_domain = widgets.Label('Domain ($\mu M$):')
 xmin = widgets.FloatText(
     description='$X_{min}$',
-    disabled=False,
+#     disabled=False,
     layout = Layout(width = constWidth),
 )
-
 ymin = widgets.FloatText(
     description='$Y_{min}$',
-    disabled=False,
     layout = Layout(width = constWidth),
 )
-
 zmin = widgets.FloatText(
     description='$Z_{min}$',
-    disabled= True,
     layout = Layout(width = constWidth),
 )
-    
 xmax = widgets.FloatText(
     description='$X_{max}$',
-    disabled=False,
     layout = Layout(width = constWidth),
 )
-
 ymax = widgets.FloatText(
     description='$Y_{max}$',
-    disabled=False,
     layout = Layout(width = constWidth),
 )
-
 zmax = widgets.FloatText(
     description='$Z_{max}$',
-    disabled=True,
     layout = Layout(width = constWidth),
 )
-
 tmax = widgets.BoundedFloatText(
     min = 0.,
     max = 100000000,
     description='$Time_{max}$',
-    disabled=False,
     layout = Layout(width = constWidth),
 )
-    
 xdelta = widgets.BoundedFloatText(
     min = 1.,
     description='$X_{delta}$',
-    disabled=False,
     layout = Layout(width = constWidth),
 )
-
 ydelta = widgets.BoundedFloatText(
     min = 1.,
     description='$Y_{delta}$',
-    disabled=False,
     layout = Layout(width = constWidth),
 )
-
 zdelta = widgets.BoundedFloatText(
     min = 1.,
     description='$Z_{delta}$',
-    disabled=True,
     layout = Layout(width = constWidth),
 )
-    
 tdelta = widgets.BoundedFloatText(
     min = 0.01,
     description='$Time_{delta}$',
-    disabled=False,
     layout = Layout(width = constWidth),
 )
 
 toggle2D = widgets.Checkbox(
     description='2-D',
-    disabled=False,
     layout = Layout(width = constWidth),
 )
 def toggle2D_cb(b):
@@ -145,7 +132,6 @@ tumor_radius = widgets.BoundedFloatText(
     max=99999,  # TODO - wth
     step=1,
     description='Tumor Radius', style={'description_width': 'initial'},
-    disabled=False,
     layout = Layout(width = constWidth),
 )
 
@@ -153,13 +139,11 @@ omp_threads = widgets.BoundedIntText(
     min=1,
     step=1,
     description='# threads',
-    disabled=False,
     layout = Layout(width = constWidth),
 )
 
 toggle_prng = widgets.Checkbox(
     description='Seed PRNG', style={'description_width': 'initial'},  # e.g. 'initial'  '120px'
-    disabled=False,
     layout = Layout(width = constWidth),
 )
 prng_seed = widgets.BoundedIntText(
@@ -179,7 +163,11 @@ toggle_prng.observe(toggle_prng_cb)
 #prng_row = widgets.HBox([toggle_prng, prng_seed])
 
 #----- Output ------
-output_dir_str = 'output'  # match the "value" of the widget below
+# TODO: this changes when running on nanoHUB (= $RESULTSDIR)
+output_dir_str = os.getenv('RESULTSDIR') + "/pc4nanobio/"
+# output_dir_str = 'output'  # match the "value" of the widget below
+
+# NOTE: not used anymore
 output_dir = widgets.Text(
 #     value='output',
     description='Output Dir',
@@ -193,20 +181,17 @@ output_dir.on_submit(config_output_dir_cb)
 
 toggle_svg = widgets.Checkbox(
     description='SVG',
-    disabled=False,
     layout = Layout(width = constWidth),
 )
 svg_t0 = widgets.BoundedFloatText (
     min=0,
     description='$T_0$',
-    disabled=False,
     layout = Layout(width = constWidth),
 )
 svg_interval = widgets.BoundedIntText(
     min=1,
-    max=99999999,
+    max=99999999,   # TODO: set max on all Bounded widgets to avoid unwanted default
     description='interval',
-    disabled=False,
     layout = Layout(width = constWidth),
 )
 def toggle_svg_cb(b):
@@ -223,7 +208,6 @@ toggle_svg.observe(toggle_svg_cb)
 toggle_mcds = widgets.Checkbox(
 #     value=False,
     description='Full',
-    disabled=False,
     layout = Layout(width = constWidth),
 )
 mcds_t0 = widgets.FloatText(
@@ -249,11 +233,20 @@ def toggle_mcds_cb(b):
 toggle_mcds.observe(toggle_mcds_cb)
 
 #----------------------------
-# NOTE: any time the elm names change in the XML, need to change here!!!
+# NOTE/TODO: any time the elm names change in the XML, need to change here!!!
 def read_config_file_cb(b):
+    config_file = os.getenv('HOME') + '/' + read_config_file.value
+    fill_gui_params(config_file)
+    
+def default_config_file_cb(b):
+    fill_gui_params('data/nanobio_settings.xml')  # NOTE: hard-coded for now
+
+def fill_gui_params(config_file):
 #    global pc4nanobio_config_xml
-    tree = ET.parse(read_config_file.value)
+    tree = ET.parse(config_file)
     root = tree.getroot()
+    xmin.value = float(root.find(".//x_min").text)
+    
     xmin.value = float(root.find(".//x_min").text)
     xmax.value = float(root.find(".//x_max").text)
     xdelta.value = float(root.find(".//dx").text)
@@ -272,38 +265,61 @@ def read_config_file_cb(b):
     omp_threads.value = int(root.find(".//omp_num_threads").text)
     
 #     output_dir.value = (root.find(".//folder").text)
+    toggle_svg.value = bool(root.find(".//SVG").find(".//enable").text)
     svg_interval.value = int(root.find(".//SVG").find(".//interval").text)
+    toggle_mcds.value = bool(root.find(".//full_data").find(".//enable").text)
     mcds_interval.value = int(root.find(".//full_data").find(".//interval").text)
     
-    max_birth_rate.value = float(root.find(".//max_birth_rate").text)
-    o2_prolif_sat.value = float(root.find(".//o2_proliferation_saturation").text)
-    o2_prolif_thresh.value = float(root.find(".//o2_proliferation_threshold").text)
-#     o2_ref.value = float(root.find(".//o2_reference").text)
-    glucose_prolif_ref.value = float(root.find(".//glucose_proliferation_reference").text)
-    glucose_prolif_sat.value = float(root.find(".//glucose_proliferation_saturation").text)
-    glucose_prolif_thresh.value = float(root.find(".//glucose_proliferation_threshold").text)
+    cdp = root.find(".//cell_definition")
+#     e2 = e1.find('.//')
+    cell0_max_birth_rate.children[0].value = float(cdp.find(".//max_birth_rate").text)
+    cell0_o2_prolif_sat.children[0].value = float(cdp.find(".//o2_proliferation_saturation").text)
+    cell0_o2_prolif_thresh.children[0].value = float(cdp.find(".//o2_proliferation_threshold").text)
+    cell0_o2_ref.children[0].value = float(cdp.find(".//o2_reference").text)
     
+    cell0_glucose_prolif_ref.children[0].value = float(root.find(".//glucose_proliferation_reference").text)
+    cell0_glucose_prolif_sat.children[0].value = float(root.find(".//glucose_proliferation_saturation").text)
+    cell0_glucose_prolif_thresh.children[0].value = float(root.find(".//glucose_proliferation_threshold").text)
+    
+    cell0_max_necrosis_rate.children[0].value = float(root.find(".//max_necrosis_rate").text)
+    cell0_o2_necrosis_thresh.children[0].value = float(root.find(".//o2_necrosis_threshold").text)
+    cell0_o2_necrosis_max.children[0].value = float(root.find(".//o2_necrosis_max").text)
+    
+    cell0_apoptosis_rate.children[0].value = float(cdp.find(".//apoptosis_rate").text)
+    
+    cell0_metab_aero.children[0].value = float(cdp.find(".//relative_aerobic_effects").text)
+    cell0_metab_glyco.children[0].value = float(cdp.find(".//relative_glycolytic_effects").text)
+    
+    cell0_toggle_motile.value = bool(cdp.find(".//is_motile").text)
+    cell0_motile_bias.value = float(cdp.find(".//bias").text)
+
     return
 
-read_config_button = Button(
-    description='Read config file',
-    disabled=False,
+default_config_button = Button(
+    description='Use defaults', style={'description_width': 'initial'},
     button_style='info', # 'success', 'info', 'warning', 'danger' or ''
-    tooltip='Read XML',
+    tooltip='Populate the GUI with default parameters',
+)
+default_config_button.on_click(default_config_file_cb)
+
+read_config_button = Button(
+    description='Read config (in ~)', style={'description_width': 'initial'},
+    button_style='info', # 'success', 'info', 'warning', 'danger' or ''
+    tooltip='Populate the GUI with info in your configuration file (in your home directory)',
 )
 read_config_file = widgets.Text(
-    value='nanobio_settings.xml',
+    value='my_nanobio_settings.xml',
     description='',
-    disabled=False,
 )
 read_config_button.on_click(read_config_file_cb)
 
 #----------------------------
 def write_config_file_cb(b):
-    print('writing config')
+#    print('writing config')
 
     # TODO: verify template .xml file exists!
-    tree = ET.parse('nanobio_template.xml')
+    # read/parse existing template that we'll then overwrite
+    tree = ET.parse('data/nanobio_settings.xml')  
     root = tree.getroot()
     
     # TODO: verify valid type (numeric) and range?
@@ -324,7 +340,6 @@ def write_config_file_cb(b):
     
 #     root.find(".//folder").text = str(output_dir.value)
     
-    
 #    user_details = ET.SubElement(root, "user_details")
 #    ET.SubElement(user_details, "PhysiCell_settings", name="version").text = "devel-version"
 #    ET.SubElement(user_details, "domain")
@@ -334,36 +349,38 @@ def write_config_file_cb(b):
 #    tree.write(write_config_file.value)
 #    tree.write("test.xml")
 
-    # TODO: verify can write to this filename
+    # TODO: verify can write to this filename and don't allow overwrite of default
+    # Q: where does this file get written/saved?
     tree.write(write_config_file.value)
     
 write_config_button = Button(
     description='Write config file',
-    disabled=False,
     button_style='success', # 'success', 'info', 'warning', 'danger' or ''
     tooltip='Generate XML',
 )
 write_config_button.on_click(write_config_file_cb)
 
 write_config_file = widgets.Text(
-    value='nano2.xml',
+    value='my_nanobio_settings.xml',
     description='',
-    disabled=False
 )
 
 #----------------------------
 run_output = widgets.Output(layout=widgets.Layout(width='900px', height='100px', border='solid'))
 #run_output
 
+# This is NOT used for the RunCommand
 run_command_str = widgets.Text(
     value='pc-nb nanobio_settings.xml',
     description='',
-    disabled=False,
 )
 
-def run_sim(s):
-    s.run("/Users/heiland/dev/run-nanobio/pc-nb nanobio_settings.xml")
-    
+# This is used now for the RunCommand
+def run_sim_func(s):
+    s.run("bin/pc-nb data/nanobio_settings.xml")  # TODO: choose: nanoHUB vs local
+#     s.run("/Users/heiland/dev/run-nanobio/pc-nb nanobio_settings.xml")
+   
+# This is NOT used now
 def run_cb(b):
     global my_proc
     print('running: ', run_command_str.value)
@@ -371,7 +388,7 @@ def run_cb(b):
 #         print(type(run_button))
 #         print(dir(run_button))
 #         args = ['/Users/heiland/git/PhysiCell-nanobio-com-fork/trunk/src/PhysiCell-nanobio','nanobio_settings.xml']
-        args = ['/Users/heiland/dev/run-nanobio/pc-nb','nanobio_settings.xml']
+#         args = ['/Users/heiland/dev/run-nanobio/pc-nb','nanobio_settings.xml']
         #my_proc = Popen(args, stdout=PIPE, stderr=STDOUT)
         #runCommand('/Users/heiland/git/PhysiCell-nanobio-com-fork/trunk/src/PhysiCell-nanobio nanobio_settings.xml')
         sys.path.insert(0, os.path.abspath('..'))
@@ -395,7 +412,7 @@ def run_cb(b):
         print("Exited with error code:", my_proc.returncode)
 
         
-run_button = RunCommand(start_func=run_sim)  # optionally: , done_func=read_data
+run_button = RunCommand(start_func=run_sim_func)  # optionally: , done_func=read_data
 
 # run_button = Button(
 #     description='Run',
@@ -418,7 +435,7 @@ run_button = RunCommand(start_func=run_sim)  # optionally: , done_func=read_data
 # )
 # kill_button.on_click(kill_cb)
 
-read_config_row = widgets.HBox([read_config_button, read_config_file])
+read_config_row = widgets.HBox([default_config_button, read_config_button, read_config_file])
 #svg_output_row = widgets.HBox([toggle_svg, svg_t0, svg_interval])
 #mat_output_row = widgets.HBox([toggle_mcds, mcds_t0, mcds_interval])
 svg_mat_output_row = widgets.HBox([toggle_svg,svg_interval, toggle_mcds,mcds_interval])
@@ -427,9 +444,12 @@ write_config_row = widgets.HBox([write_config_button, write_config_file])
 # run_sim_row = widgets.HBox([run_button, run_command_str])
 # run_sim_row = widgets.HBox([run_button.w])  # need ".w" for the custom RunCommand widget
 
-toggle_2D_seed_row = widgets.HBox([toggle2D, toggle_prng, prng_seed])
-config_tab = widgets.VBox([read_config_row, toggle_2D_seed_row, label_domain,x_row,y_row,z_row,  tmax, omp_threads,  
-                           tumor_radius,svg_mat_output_row], layout=tab_layout)  # output_dir
+label_blankline = widgets.Label('')
+tumor_radius2 = HBox([tumor_radius,micron_units])
+# toggle_2D_seed_row = widgets.HBox([toggle_prng, prng_seed])  # toggle2D
+config_tab = widgets.VBox([read_config_row, label_domain,x_row,y_row,z_row,  
+                           label_blankline, tmax, omp_threads,  
+                           tumor_radius2,svg_mat_output_row], layout=tab_layout)  # output_dir, toggle_2D_seed_row
 
 
 #----------------------------------------------
@@ -445,24 +465,29 @@ axes_max = 2000
 #axes_max = 1000
 scale_radius = 1.0
 
-svg_dir_str = output_dir_str
-mcds_dir_str = output_dir_str
+# TODO: these change when running on nanoHUB 
+#svg_dir_str = output_dir_str
+#mcds_dir_str = output_dir_str
 
 field_index = 4
 def plot_substrate(FileId):
     global current_idx, axes_max, gFileId, field_index
-    global svg_dir_str
+#    global svg_dir_str
     #  dir = svg_dir.value
 #     print('debug> plot_substrate: idx=',FileId)
     gFileId = FileId
     fname = "output%08d_microenvironment0.mat" % FileId
-    fullname = svg_dir_str + "/" + fname
+#    fullname = svg_dir_str + "/" + fname
+    fullname = output_dir_str + fname
+    if not pathlib.Path(fullname).is_file():
+        return
 
     info_dict = {}
     scipy.io.loadmat(fullname, info_dict)
     M = info_dict['multiscale_microenvironment']
 #     global_field_index = int(mcds_field.value)
 #     print('plot_substrate: field_index =',field_index)
+#    print('plot_substrate: field_index=',field_index)
     f = M[field_index,:]   # 4=tumor cells field, 5=blood vessel density, 6=growth substrate
     #plt.clf()
     #my_plot = plt.imshow(f.reshape(400,400), cmap='jet', extent=[0,20, 0,20])
@@ -495,13 +520,13 @@ def plot_substrate(FileId):
 get_ipython().run_line_magic('matplotlib', 'inline')
 def plot_svg(SVG):
   global current_idx, axes_max
-  global svg_dir_str
+#  global svg_dir_str
 #  dir = svg_dir.value
 #   print('plot_svg: SVG=',SVG)
-  fname = svg_dir_str + "/snapshot%08d.svg" % SVG
-
-  if (os.path.isfile(fname) == False):
-    print("File does not exist: ",fname)
+  fname = "snapshot%08d.svg" % SVG
+  fullname = output_dir_str + fname
+  if not pathlib.Path(fullname).is_file():
+#    print("File does not exist: ",fname)
     return
 
   xlist = deque()
@@ -509,8 +534,8 @@ def plot_svg(SVG):
   rlist = deque()
   rgb_list = deque()
 
-#  print('\n---- ' + fname + ':')
-  tree = ET.parse(fname)
+#  print('\n---- ' + fullname + ':')
+  tree = ET.parse(fullname)
   root = tree.getroot()
 #  print('--- root.tag ---')
 #  print(root.tag)
@@ -641,19 +666,19 @@ def plot_svg(SVG):
 #plt.ioff()
 #   plt.show()
 
-def svg_dir_cb(w):
-    global svg_dir_str
-    svg_dir_str = w.value
-    print(svg_dir_str)
+#def svg_dir_cb(w):
+#    global svg_dir_str
+#    svg_dir_str = w.value
+#    print(svg_dir_str)
     
-svg_dir = widgets.Text(
-    value=svg_dir_str,
-    description='Directory',
-)
-#svg_dir.observe(svg_dir_cb)
-svg_dir.on_submit(svg_dir_cb)
+#svg_dir = widgets.Text(
+#    value=svg_dir_str,
+#    description='Directory',
+#)
+#svg_dir.on_submit(svg_dir_cb)
 
 #rwh - is this where I change size of render window?? (apparently not)
+# TODO: dynamically change max value
 svg_plot = widgets.interactive(plot_svg, SVG=(0, 500), continuous_update=False)
 # output = svg_plot.children[-1]
 # output.layout.height = '300px'
@@ -690,79 +715,285 @@ svg_plot.layout.height = svg_plot_size
 #svg_anim = widgets.HBox([svg_play, svg_slider])
 
 #svg_tab = widgets.VBox([svg_dir, svg_plot, svg_anim], layout=tab_layout)
-svg_tab = widgets.HBox([svg_dir, svg_plot], layout=tab_layout)
+svg_tab = widgets.HBox([svg_plot], layout=tab_layout)  # svg_dir
 
 #svg_tab = widgets.VBox([svg_dir, svg_anim], layout=tab_layout)
 #---------------------
 
+#============ Cells tab ===================
 cell_name = widgets.Text(
     value='untreated cancer',
-    description='Name',
+    description='Cell line name', style={'description_width': 'initial'},
 )
-label_cycle = widgets.Label('Cycle:')
-max_birth_rate = widgets.BoundedFloatText (
+#-------
+label_cycle = widgets.Label('Cycle:')   # no worky:  ,style={'font_weight': 'bold'})
+
+# NOTE: by adopting the 
+cell0_max_birth_rate = HBox([BoundedFloatText (
     min=0,
+    #value = 0.0079,
     description='Max birth rate', style={'description_width': 'initial'},
-    disabled=False,
-    layout = Layout(width = constWidth),
-)
-o2_prolif_sat = widgets.BoundedFloatText (
+    layout = Layout(width = constWidth3),
+    ), min_inv_units], layout=Layout(width='300px'))
+
+
+width_cell_params_units = '230px'
+cell0_o2_prolif_sat = HBox([BoundedFloatText (
     min=0,
     description='$O_2$: Prolif sat',
-    disabled=False,
     layout = Layout(width = constWidth),
-)
-o2_prolif_thresh = widgets.BoundedFloatText (
+    ), mmHg_units], layout=Layout(width=width_cell_params_units))
+cell0_o2_prolif_thresh = HBox([BoundedFloatText (
     min=0,
     description='Prolif thresh',
-    disabled=False,
     layout = Layout(width = constWidth),
-)
-o2_prolif_ref = widgets.BoundedFloatText (
+    ), mmHg_units], layout=Layout(width=width_cell_params_units))
+cell0_o2_ref = HBox([BoundedFloatText (
     min=0,
     description='Ref',
-    disabled=False,
     layout = Layout(width = constWidth),
-)
+    ), mmHg_units], layout=Layout(width=width_cell_params_units))
 
-glucose_prolif_sat = widgets.BoundedFloatText (
+cell0_glucose_prolif_sat = HBox([BoundedFloatText (
     min=0,
-    description='$G$: Prolif sat',
-    disabled=False,
-    layout = Layout(width = constWidth),
-)
-glucose_prolif_thresh = widgets.BoundedFloatText (
+    description='$Glc$: Prolif sat',
+    layout = Layout(width = constWidth),style={'description_width': 'initial'},
+    ), ], layout=Layout(width=width_cell_params_units))
+cell0_glucose_prolif_thresh = HBox([BoundedFloatText (
     min=0,
     description='Prolif thresh',
-    disabled=False,
     layout = Layout(width = constWidth),
-)
-glucose_prolif_ref = widgets.BoundedFloatText (
+    ), ], layout=Layout(width=width_cell_params_units))
+cell0_glucose_prolif_ref = HBox([BoundedFloatText (
     min=0,
     description='Ref',
-    disabled=False,
     layout = Layout(width = constWidth),
-)
-#----
+    ), ], layout=Layout(width=width_cell_params_units))
+
+#-------
 label_necrosis = widgets.Label('Necrosis:')
+cell0_max_necrosis_rate = HBox([BoundedFloatText (
+    min=0,
+    description='Max rate', # style={'description_width': 'initial'},
+    layout = Layout(width = constWidth),
+    ), min_inv_units], layout=Layout(width=width_cell_params_units))
+cell0_o2_necrosis_thresh = HBox([BoundedFloatText (
+    min=0,
+    description='$O_2$: Thresh',
+    layout = Layout(width = constWidth),
+    ), mmHg_units], layout=Layout(width=width_cell_params_units))
+cell0_o2_necrosis_max = HBox([BoundedFloatText (
+    min=0,
+    description='Max',
+    layout = Layout(width = constWidth),
+    ), mmHg_units], layout=Layout(width=width_cell_params_units))
+
+#-------
 label_apoptosis = widgets.Label('Apoptosis:')
-label_metabolism = widgets.Label('Metabolism:')
+cell0_apoptosis_rate = HBox([BoundedFloatText (
+    min=0,
+    description='Rate', # style={'description_width': 'initial'},
+    layout = Layout(width = constWidth),
+), min_inv_units], layout=Layout(width=width_cell_params_units))
+
+#-------
+# TODO: enforce sum=1
+label_metabolism = widgets.Label('Metabolism (must sum to 1):')
+# TODO: assert these next 2 values sum to 1.0
+cell0_metab_aero = HBox([BoundedFloatText (
+    min=0,max=1,step=0.1,
+    description='Aerobic', #style={'description_width': 'initial'},
+    layout = Layout(width = constWidth),
+    ), ], layout=Layout(width=width_cell_params_units))
+cell0_metab_glyco = HBox([BoundedFloatText (
+    min=0,max=1,step=0.1,
+    description='Glycolytic', #style={'description_width': 'initial'},
+    layout = Layout(width = constWidth),
+    ), ], layout=Layout(width=width_cell_params_units))
+
+#-------
 label_motility = widgets.Label('Motility:')
+
+cell0_toggle_motile = widgets.Checkbox(
+    description='Motile',
+    layout = Layout(width = constWidth),
+)
+cell0_motile_bias = BoundedFloatText (
+    min=0,max=1,step=0.1,
+#     disabled = True,
+    description='Bias', # style={'description_width': 'initial'},
+    layout = Layout(width = constWidth),
+)
+def cell0_toggle_motile_cb(b):
+    if (cell0_toggle_motile.value):
+        cell0_motile_bias.disabled = False
+    else:
+        cell0_motile_bias.disabled = True
+    
+cell0_toggle_motile.observe(cell0_toggle_motile_cb)
+
+
+#-------
 label_mechanics = widgets.Label('Mechanics:')
+cell0_max_rel_adhesion_dist = HBox([BoundedFloatText (
+    min=0, step=0.1, #max=1,  
+    description='Max adhesion distance', # style={'description_width': 'initial'},
+    layout = Layout(width = constWidth),
+    ), ], layout=Layout(width=width_cell_params_units))
+cell0_adhesion_strength = HBox([BoundedFloatText (
+    min=0, step=0.1, #max=1,  
+    description='Adhesion strength', # style={'description_width': 'initial'},
+    layout = Layout(width = constWidth),
+    ), ], layout=Layout(width=width_cell_params_units))
+cell0_repulsion_strength = HBox([BoundedFloatText (
+    min=0, step=0.1, #max=1,  
+    description='Repulsion strength', # style={'description_width': 'initial'},
+    layout = Layout(width = constWidth),
+    ), ], layout=Layout(width=width_cell_params_units))
+
+#-------
 label_hypoxia = widgets.Label('Hypoxia:')
+cell0_o2_hypoxic_thresh = HBox([BoundedFloatText (
+    min=0, step=0.1, #max=1,  
+    description='$O_2$: Thresh', # style={'description_width': 'initial'},
+    layout = Layout(width = constWidth),
+    ), mmHg_units], layout=Layout(width=width_cell_params_units))
+cell0_o2_hypoxic_response = HBox([BoundedFloatText (
+    min=0, step=0.1, #max=1,  
+    description='Response', # style={'description_width': 'initial'},
+    layout = Layout(width = constWidth),
+    ), mmHg_units], layout=Layout(width=width_cell_params_units))
+cell0_o2_hypoxic_sat = HBox([BoundedFloatText (
+    min=0, step=0.1, #max=1,  
+    description='Saturation', # style={'description_width': 'initial'},
+    layout = Layout(width = constWidth),
+    ), mmHg_units], layout=Layout(width=width_cell_params_units))
+
+#-------
 label_secretion = widgets.Label('Secretion:')
+cell0_secretion_o2_uptake = HBox([BoundedFloatText (
+    min=0, step=0.1, #max=1,  
+    description='$O_2$: Uptake rate', # style={'description_width': 'initial'},
+    layout = Layout(width = constWidth),
+    ), min_inv_units], layout=Layout(width=width_cell_params_units))
+cell0_secretion_o2_secretion = HBox([BoundedFloatText (
+    min=0, step=0.1, #max=1,  
+    description='Secretion rate', # style={'description_width': 'initial'},
+    layout = Layout(width = constWidth),
+    ), min_inv_units], layout=Layout(width=width_cell_params_units))
+cell0_secretion_o2_sat = HBox([BoundedFloatText (
+    min=0, step=0.1, #max=1,  
+    description='Saturation', # style={'description_width': 'initial'},
+    layout = Layout(width = constWidth),
+    ), mmHg_units], layout=Layout(width=width_cell_params_units))
+
+cell0_secretion_glc_uptake = HBox([BoundedFloatText (
+    min=0, step=0.1, #max=1,  
+    description='$Glc$: Uptake rate', # style={'description_width': 'initial'},
+    layout = Layout(width = constWidth),
+    ), min_inv_units], layout=Layout(width=width_cell_params_units))
+cell0_secretion_glc_secretion = HBox([BoundedFloatText (
+    min=0, step=0.1, #max=1,  
+    description='Secretion rate', # style={'description_width': 'initial'},
+    layout = Layout(width = constWidth),
+    ), min_inv_units], layout=Layout(width=width_cell_params_units))
+cell0_secretion_glc_sat = HBox([BoundedFloatText (
+    min=0, step=0.1, #max=1,  
+    description='Saturation', # style={'description_width': 'initial'},
+    layout = Layout(width = constWidth),
+    ), mmHg_units], layout=Layout(width=width_cell_params_units))
+
+cell0_secretion_Hions_uptake = HBox([BoundedFloatText (
+    min=0, step=0.1, #max=1,  
+    description='$H$+: Uptake rate', # style={'description_width': 'initial'},
+    layout = Layout(width = constWidth),
+    ), min_inv_units], layout=Layout(width=width_cell_params_units))
+cell0_secretion_Hions_secretion = HBox([BoundedFloatText (
+    min=0, step=0.1, #max=1,  
+    description='Secretion rate', # style={'description_width': 'initial'},
+    layout = Layout(width = constWidth),
+    ), min_inv_units], layout=Layout(width=width_cell_params_units))
+cell0_secretion_Hions_sat = HBox([BoundedFloatText (
+    min=0, step=0.1, #max=1,  
+    description='Saturation', # style={'description_width': 'initial'},
+    layout = Layout(width = constWidth),
+    ), mmHg_units], layout=Layout(width=width_cell_params_units))
+
+cell0_secretion_ECM_uptake = HBox([BoundedFloatText (
+    min=0, step=0.1, #max=1,  
+    description='$ECM$: Uptake rate', # style={'description_width': 'initial'},
+    layout = Layout(width = constWidth),
+    ), min_inv_units], layout=Layout(width=width_cell_params_units))
+cell0_secretion_ECM_secretion = HBox([BoundedFloatText (
+    min=0, step=0.1, #max=1,  
+    description='Secretion rate', # style={'description_width': 'initial'},
+    layout = Layout(width = constWidth),
+    ), min_inv_units], layout=Layout(width=width_cell_params_units))
+cell0_secretion_ECM_sat = HBox([BoundedFloatText (
+    min=0, step=0.1, #max=1,  
+    description='Saturation', # style={'description_width': 'initial'},
+    layout = Layout(width = constWidth),
+    ), mmHg_units], layout=Layout(width=width_cell_params_units))
+
+cell0_secretion_NP1_uptake = HBox([BoundedFloatText (
+    min=0, step=0.1, #max=1,  
+    description='$NP1$: Uptake rate', # style={'description_width': 'initial'},
+    layout = Layout(width = constWidth),
+    ), min_inv_units], layout=Layout(width=width_cell_params_units))
+cell0_secretion_NP1_secretion = HBox([BoundedFloatText (
+    min=0, step=0.1, #max=1,  
+    description='Secretion rate', # style={'description_width': 'initial'},
+    layout = Layout(width = constWidth),
+    ), min_inv_units], layout=Layout(width=width_cell_params_units))
+cell0_secretion_NP1_sat = HBox([BoundedFloatText (
+    min=0, step=0.1, #max=1,  
+    description='Saturation', # style={'description_width': 'initial'},
+    layout = Layout(width = constWidth),
+    ), mmHg_units], layout=Layout(width=width_cell_params_units))
+
+cell0_secretion_NP2_uptake = HBox([BoundedFloatText (
+    min=0, step=0.1, #max=1,  
+    description='$NP2$: Uptake rate', # style={'description_width': 'initial'},
+    layout = Layout(width = constWidth),
+    ), min_inv_units], layout=Layout(width=width_cell_params_units))
+cell0_secretion_NP2_secretion = HBox([BoundedFloatText (
+    min=0, step=0.1, #max=1,  
+    description='Secretion rate', # style={'description_width': 'initial'},
+    layout = Layout(width = constWidth),
+    ), min_inv_units], layout=Layout(width=width_cell_params_units))
+cell0_secretion_NP2_sat = HBox([BoundedFloatText (
+    min=0, step=0.1, #max=1,  
+    description='Saturation', # style={'description_width': 'initial'},
+    layout = Layout(width = constWidth),
+    ), mmHg_units], layout=Layout(width=width_cell_params_units))
 
 
-
-cells_row1 = widgets.HBox([cell_name])
-cells_row2 = widgets.HBox([o2_prolif_sat, o2_prolif_thresh, o2_prolif_ref])
-cells_row3 = widgets.HBox([glucose_prolif_sat, glucose_prolif_thresh, glucose_prolif_ref])
-cells_tab = widgets.VBox([cells_row1,label_cycle,max_birth_rate,cells_row2, cells_row3,
-                label_necrosis,max_birth_rate,cells_row2, cells_row3,
-                label_apoptosis,label_metabolism,label_motility,
-                label_mechanics,label_hypoxia,label_secretion]) #, layout=tab_layout)
+#-----------------
+# cells_max_birth_rate2 = HBox([max_birth_rate,min_inv_units], layout=Layout(width='300px'))
+# cells_o2_prolif_sat2 = HBox([o2_prolif_sat,min_inv_units])
+# cells_o2_prolif_thresh2 = HBox([o2_prolif_thresh, mmHg_units])
+cells_row1 = HBox([cell_name])
+cells_row2 = HBox([cell0_o2_prolif_sat, cell0_o2_prolif_thresh, cell0_o2_ref])
+cells_row3 = HBox([cell0_glucose_prolif_sat, cell0_glucose_prolif_thresh, cell0_glucose_prolif_ref])
+cell0_necrosis_row = HBox([cell0_o2_necrosis_thresh, cell0_o2_necrosis_max]) #, layout=Layout(width=pk_widgets_width))
+cells_tab = VBox([cells_row1, 
+    label_cycle, cell0_max_birth_rate, cells_row2, cells_row3,
+    label_necrosis, cell0_max_necrosis_rate, cell0_necrosis_row,
+    label_apoptosis, cell0_apoptosis_rate,
+    label_metabolism, HBox([cell0_metab_aero, cell0_metab_glyco]),
+    label_motility, HBox([cell0_toggle_motile, cell0_motile_bias]),
+    label_mechanics, HBox([cell0_max_rel_adhesion_dist,cell0_adhesion_strength,cell0_repulsion_strength]),
+    label_hypoxia, HBox([cell0_o2_hypoxic_thresh,cell0_o2_hypoxic_response,cell0_o2_hypoxic_sat]),
+    label_secretion, HBox([cell0_secretion_o2_uptake,cell0_secretion_o2_secretion,cell0_secretion_o2_sat]),
+                  HBox([cell0_secretion_glc_uptake,cell0_secretion_glc_secretion,cell0_secretion_glc_sat]),
+                  HBox([cell0_secretion_Hions_uptake,cell0_secretion_Hions_secretion,cell0_secretion_Hions_sat]),
+                  HBox([cell0_secretion_ECM_uptake,cell0_secretion_ECM_secretion,cell0_secretion_ECM_sat]),
+                  HBox([cell0_secretion_NP1_uptake,cell0_secretion_NP1_secretion,cell0_secretion_NP1_sat]),
+                  HBox([cell0_secretion_NP2_uptake,cell0_secretion_NP1_secretion,cell0_secretion_NP2_sat]),
+    ])  #, layout=tab_layout)
 
 #=========
+# PK
 half_conc_desc = '$T_{0.5}$'
 diffusion_coef_desc = 'Diffusion coef'
 survival_desc = 'Survival lifetime'
@@ -771,12 +1002,12 @@ unbinding_desc = 'ECM unbinding rate'
 sat_conc_desc = 'ECM saturation conc'
 desc_style = {'description_width': '150px'}  # vs. 'initial'
 
+# PD
+ec_50_desc = '$EC_{50}$'
+
 label_PK = widgets.Label('Pharmacokinetics:')
 pk_param_width = '270px'
-diffusion_coef_units = widgets.HTMLMath(value=r"$\frac{\mu M^2}{min}$")
-survival_lifetime_units = widgets.HTMLMath(value=r"$min$")
-min_inv_units = widgets.HTMLMath(value=r"$\frac{1}{min}$")
-
+pd_param_width = '270px'
 #------------
 np1_diff_coef = widgets.BoundedFloatText (
     min=0,
@@ -799,28 +1030,40 @@ np1_binding_rate = widgets.BoundedFloatText (
 np1_unbinding_rate = widgets.BoundedFloatText (
     min=0,
     description= unbinding_desc, style=desc_style,
-    disabled=False,
     layout = Layout(width = pk_param_width),
 )
 np1_saturation_conc = widgets.BoundedFloatText (
     min=0,
     description= sat_conc_desc, style=desc_style,
-    disabled=False,
     layout = Layout(width = pk_param_width),
 )
 #box_layout = Layout(display='flex',flex_flow='column',align_items='stretch',border='1px solid black',width='30%')
 pk_widgets_width = '320px'
-np1_diff_coef2 = widgets.HBox([np1_diff_coef,diffusion_coef_units], layout=Layout(width=pk_widgets_width),)
-np1_survival_lifetime2 = widgets.HBox([np1_survival_lifetime,survival_lifetime_units], layout=Layout(width=pk_widgets_width),)
-np1_binding_rate2 = widgets.HBox([np1_binding_rate,min_inv_units], layout=Layout(width=pk_widgets_width),)
-np1_unbinding_rate2 = widgets.HBox([np1_unbinding_rate,min_inv_units], layout=Layout(width=pk_widgets_width),)
+np1_diff_coef2 = HBox([np1_diff_coef,diffusion_coef_units], layout=Layout(width=pk_widgets_width),)
+np1_survival_lifetime2 = HBox([np1_survival_lifetime,survival_lifetime_units], layout=Layout(width=pk_widgets_width),)
+np1_binding_rate2 = HBox([np1_binding_rate,min_inv_units], layout=Layout(width=pk_widgets_width),)
+np1_unbinding_rate2 = HBox([np1_unbinding_rate,min_inv_units], layout=Layout(width=pk_widgets_width),)
 #np1_sat_conc2 = widgets.HBox([np1_saturation_conc,min_inv_units], layout=Layout(width=pk_widgets_width),)
 
-np1_PK_params = widgets.VBox([label_PK,np1_diff_coef2,np1_survival_lifetime2,np1_binding_rate2,np1_unbinding_rate2,np1_saturation_conc]) #, layout=box_layout)
+np1_PK_params = VBox([label_PK,np1_diff_coef2,np1_survival_lifetime2,np1_binding_rate2,np1_unbinding_rate2,np1_saturation_conc]) #, layout=box_layout)
 
+#----------
 label_PD = widgets.Label('Pharmacodynamics:')
 
-np1_tab = widgets.VBox([np1_PK_params, label_PD], layout=np_tab_layout)
+np1_effect_model_choice = widgets.Dropdown(
+#     options=['1', '2', '3','4','5','6'],
+    options=['Simple (conc)', 'Intermed (AUC)', 'Details'],
+    value='Simple (conc)',
+#     description='Field',
+    layout = Layout(width = constWidth),
+)
+np1_EC_50 = widgets.BoundedFloatText (
+    min=0,
+    description= ec_50_desc, style=desc_style,
+    layout = Layout(width = pd_param_width),
+)
+
+np1_tab = VBox([np1_PK_params, label_PD], layout=np_tab_layout)
 
 
 #------------
@@ -828,31 +1071,26 @@ np1_tab = widgets.VBox([np1_PK_params, label_PD], layout=np_tab_layout)
 np2_diff_coef = widgets.BoundedFloatText (
     min=0,
     description= diffusion_coef_desc, style=desc_style,
-    disabled=False,
     layout = Layout(width = pk_param_width),  #flex_flow='row',align_items='stretch'),
 )
 np2_survival_lifetime = widgets.BoundedFloatText (
     min=0,
     description= survival_desc, style=desc_style,
-    disabled=False,
     layout = Layout(width = pk_param_width),  #flex_flow='row',align_items='stretch'),
 )
 np2_binding_rate = widgets.BoundedFloatText (
     min=0,
     description= binding_desc, style=desc_style,
-    disabled=False,
     layout = Layout(width = pk_param_width),
 )
 np2_unbinding_rate = widgets.BoundedFloatText (
     min=0,
     description= unbinding_desc, style=desc_style,
-    disabled=False,
     layout = Layout(width = pk_param_width),
 )
 np2_saturation_conc = widgets.BoundedFloatText (
     min=0,
     description= sat_conc_desc, style=desc_style,
-    disabled=False,
     layout = Layout(width = pk_param_width),
 )
 #box_layout = Layout(display='flex',flex_flow='column',align_items='stretch',border='1px solid black',width='30%')
@@ -864,9 +1102,10 @@ np2_unbinding_rate2 = widgets.HBox([np2_unbinding_rate,min_inv_units], layout=La
 np2_PK_params = widgets.VBox([label_PK,np2_diff_coef2,np2_survival_lifetime2,np2_binding_rate2,
                               np2_unbinding_rate2,np2_saturation_conc]) #, layout=box_layout)
 
+#---------------
 label_PD = widgets.Label('Pharmacodynamics:')
 
-
+#---------------
 np2_tab = widgets.VBox([np2_PK_params, label_PD], layout=np_tab_layout)
 
 #-------------------
@@ -884,25 +1123,25 @@ np_tab.set_title(2, 'Transformations')
 
 #--------------------
 
-def plot_mcds(MCDS):
-    global current_idx, axes_max
-    global mcds_dir_str
-    fname = mcds_dir_str + "/output%08d.mat" % MCDS
-    return
+#def plot_mcds(MCDS):
+#    global current_idx, axes_max
+#    global mcds_dir_str
+#    fname = mcds_dir_str + "/output%08d.mat" % MCDS
+#    return
 
-def mcds_dir_cb(w):
-    global mcds_dir_str
-    mcds_dir_str = w.value
-    print(mcds_dir_str)
+#def mcds_dir_cb(w):
+#    global mcds_dir_str
+#    mcds_dir_str = w.value
+#    print(mcds_dir_str)
     
-mcds_dir = widgets.Text(
-    value=mcds_dir_str,
-    description='Directory',
-)
-mcds_dir.on_submit(mcds_dir_cb)
+#mcds_dir = widgets.Text(
+#    value=mcds_dir_str,
+#    description='Directory',
+#)
+#mcds_dir.on_submit(mcds_dir_cb)
 
-#mcds_plot = widgets.interactive(plot_mcds, MCDS=(0, 500), continuous_update=False)
-mcds_plot = widgets.interactive(plot_substrate, FileId=(0, 100), continuous_update=False)
+# TODO: dynamically change max value
+mcds_plot = widgets.interactive(plot_substrate, FileId=(0, 200), continuous_update=False)  
 mcds_plot.layout.width = svg_plot_size
 mcds_plot.layout.height = svg_plot_size
 
@@ -921,15 +1160,17 @@ mcds_plot.layout.height = svg_plot_size
 # widgets.HBox([mcds_play, mcds_slider])
 
 mcds_field = widgets.Dropdown(
-    options=['1', '2', '3','4','5','6'],
-    value='1',
-    description='Field',
-    disabled=False,
+#     options=['1', '2', '3','4','5','6'],
+    options=['oxygen', 'glucose', 'H+ ions','ECM','NP1','NP2'],
+    value='oxygen',
+#     description='Field',
     layout = Layout(width = constWidth),
 )
 def mcds_field_cb(b):
     global field_index
-    field_index = int(mcds_field.value) + 3  # match actual (0-offset) field in data
+#     field_index = int(mcds_field.value) + 3  # match actual (0-offset) field in data
+    field_index = mcds_field.options.index(mcds_field.value) + 4 # match actual (0-offset) field in data
+#    print('mcds_field_field_cb: field_index=',field_index)  # a 'print' causes flicker!
 #     print(gFileId)
 #     plot_substrate(gFileId)  # argh, this will create a *new* plot
     
@@ -940,8 +1181,8 @@ field_cmap = widgets.Text(
     description='Colormap',
     layout = Layout(width = constWidth),
 )
+    
 toggle_field_cmap_fixed = widgets.Checkbox(
-    disabled=False,
     description='Fix',
     layout = Layout(width = constWidth2),
 )
@@ -956,27 +1197,34 @@ field_cmap_fixed_max = widgets.FloatText (
     disabled=True,
     layout = Layout(width = constWidth2),
 )
+def toggle_field_cmap_fixed_cb(b):
+    if (toggle_field_cmap_fixed.value):
+        field_cmap_fixed_min.disabled = False
+        field_cmap_fixed_max.disabled = False
+    else:
+        field_cmap_fixed_min.disabled = True
+        field_cmap_fixed_max.disabled = True
+
+toggle_field_cmap_fixed.observe(toggle_field_cmap_fixed_cb)
 
 field_cmap_row2 = widgets.HBox([field_cmap, toggle_field_cmap_fixed])
 field_cmap_row3 = widgets.HBox([field_cmap_fixed_min,field_cmap_fixed_max])
 # mcds_tab = widgets.VBox([mcds_dir, mcds_plot, mcds_play], layout=tab_layout)
-mcds_params = widgets.VBox([mcds_dir, mcds_field, field_cmap_row2,field_cmap_row3])
+mcds_params = widgets.VBox([mcds_field, field_cmap_row2,field_cmap_row3]) # mcds_dir
 mcds_tab = widgets.HBox([mcds_params, mcds_plot], layout=tab_layout)
 
 #----------------------
 xml_editor = widgets.Textarea(
     description="",
-    disabled=False,
     layout = widgets.Layout(border='1px solid black', width='900px', height='500px'), #tab_layout,  #Layout(min_width = '900px', min_height='300px'),
 )
 #xml_editor.value = "Mary had a lamb, yada yada...\nfleece was white yada..."
-with open('nanobio_settings.xml') as xml_filep:
-    xml_editor.value = xml_filep.read()
-xml_filep.closed
+#with open('nanobio_settings.xml') as xml_filep:
+#    xml_editor.value = xml_filep.read()
+#xml_filep.closed
 
 write_xml_button = Button(
     description='Save XML config file',
-    disabled=False,
     button_style='success', # 'success', 'info', 'warning', 'danger' or ''
     tooltip='Write XML',
 )
@@ -985,18 +1233,18 @@ write_xml_button = Button(
 xml_tab = widgets.VBox([xml_editor,write_xml_button], layout=tab_layout)
 
 #----------------------
-tabs = widgets.Tab(children=[config_tab, cells_tab, np_tab, svg_tab, mcds_tab])  # xml_tab
+tabs = widgets.Tab(children=[config_tab, cells_tab, np_tab, svg_tab, mcds_tab], layout=tab_layout)  # xml_tab
 tab_idx = 0
 tabs.set_title(tab_idx, 'Config Basics'); tab_idx += 1
 tabs.set_title(tab_idx, 'Cells'); tab_idx += 1
 tabs.set_title(tab_idx, 'Nanoparticles'); tab_idx += 1
 # tabs.set_title(tab_idx, 'XML'); tab_idx += 1
-tabs.set_title(tab_idx, 'SVG'); tab_idx += 1
-tabs.set_title(tab_idx, 'Substrates')
+tabs.set_title(tab_idx, 'out:SVG'); tab_idx += 1
+tabs.set_title(tab_idx, 'out:Substrates')
 
 # run_sim = widgets.VBox([write_config_row, run_sim_row, run_output])
 run_sim = widgets.VBox([write_config_row, run_button.w])
 
-widgets.VBox(children=[tabs,run_sim], layout=tab_layout)
+gui = widgets.VBox(children=[tabs,run_sim]) #, layout=tab_layout)
 
 
