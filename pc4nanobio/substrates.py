@@ -7,12 +7,13 @@ import matplotlib.colors as mplc
 import scipy.io
 
 
-class SubTab(object):
+class SubtrateTab(object):
 
     def __init__(self):
         
         # initial value
         self.field_index = 4
+        # self.field_index = self.mcds_field.value + 4
 
         tab_height = '500px'
         constWidth = '180px'
@@ -27,7 +28,7 @@ class SubTab(object):
 
         self.mcds_field = Dropdown(
             options={'oxygen': 0, 'glucose': 1, 'H+ ions': 2, 'ECM': 3, 'NP1': 4, 'NP2': 5},
-            value=4,
+            value=0,
             #     description='Field',
             layout=Layout(width=constWidth)
         )
@@ -64,7 +65,11 @@ class SubTab(object):
 
 
     def mcds_field_cb(self, b):
-        self.field_index = self.mcds_field.value
+        #self.field_index = self.mcds_field.value
+#        self.field_index = self.mcds_field.options.index(self.mcds_field.value) + 4
+#        self.field_index = self.mcds_field.options[self.mcds_field.value]
+        self.field_index = self.mcds_field.value + 4
+        print('field_index=',self.field_index)
         self.mcds_plot.update()
 
     def plot_substrate(self, fid):

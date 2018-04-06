@@ -1,3 +1,4 @@
+# Rf  https://www.python.org/dev/peps/pep-0008/
 import ipywidgets as widgets
 from hublib.ui import RunCommand
 import xml.etree.ElementTree as ET
@@ -7,9 +8,9 @@ from config import ConfigTab
 from cells import CellsTab
 from nano import NanoTab
 from svg import SVGTab
-from substrates import SubTab
+from substrates import SubtrateTab
 
-join_our_list = "(Join/ask questions at https://groups.google.com/forum/#!forum/physicell-users)\n"
+#join_our_list = "(Join/ask questions at https://groups.google.com/forum/#!forum/physicell-users)\n"
 
 constWidth = '180px'
 
@@ -19,11 +20,11 @@ tab_layout = widgets.Layout(width='800px',   # border='2px solid black',
                             height=tab_height, overflow_y='scroll',)
 
 # create the tabs, but don't display yet
-ctab = ConfigTab()
+config_tab = ConfigTab()
 cells = CellsTab()
 ntab = NanoTab()
 svg = SVGTab()
-sub = SubTab()
+sub = SubtrateTab()
 
 
 def read_config_file_cb(_b):
@@ -87,48 +88,26 @@ def fill_gui_params(config_file):
     # FIXME:  this will need modified to use new classes
     # for example, 'xmin' is created in config.py.  Make it a class
     # variable by putting "self." before the name.  Below, it
-    # will be referenced by the class instance "ctab.xmin"
+    # will be referenced by the class instance "config_tab.xmin"
     #
     # The best approach would be to add fill_gui() methods to each class
     # then the code below would be something like
     # tree = ET.parse(config_file)
     # root = tree.getroot()
-    # ctab.fill_gui(root)
+    # config_tab.fill_gui(root)
     # cells.fill_gui(root)
     # ...
     
     tree = ET.parse(config_file)
     root = tree.getroot()
 
-    ctab.fill_gui(root)
-#    ctab.xmin.value = float(root.find(".//x_min").text)
+    config_tab.fill_gui(root)
+    cells.fill_gui(root)
+#    config_tab.xmin.value = float(root.find(".//x_min").text)
     
 #    xmin.value = float(root.find(".//x_min").text)
-#    ctab.xmax.value = float(root.find(".//x_max").text)
+#    config_tab.xmax.value = float(root.find(".//x_max").text)
 
-    
-    cdp = root.find(".//cell_definition")
-    #     e2 = e1.find('.//')
-    cell0_max_birth_rate.children[0].value = float(cdp.find(".//max_birth_rate").text)
-    cell0_o2_prolif_sat.children[0].value = float(cdp.find(".//o2_proliferation_saturation").text)
-    cell0_o2_prolif_thresh.children[0].value = float(cdp.find(".//o2_proliferation_threshold").text)
-    cell0_o2_ref.children[0].value = float(cdp.find(".//o2_reference").text)
-    
-    cell0_glucose_prolif_ref.children[0].value = float(root.find(".//glucose_proliferation_reference").text)
-    cell0_glucose_prolif_sat.children[0].value = float(root.find(".//glucose_proliferation_saturation").text)
-    cell0_glucose_prolif_thresh.children[0].value = float(root.find(".//glucose_proliferation_threshold").text)
-    
-    cell0_max_necrosis_rate.children[0].value = float(root.find(".//max_necrosis_rate").text)
-    cell0_o2_necrosis_thresh.children[0].value = float(root.find(".//o2_necrosis_threshold").text)
-    cell0_o2_necrosis_max.children[0].value = float(root.find(".//o2_necrosis_max").text)
-    
-    cell0_apoptosis_rate.children[0].value = float(cdp.find(".//apoptosis_rate").text)
-    
-    cell0_metab_aero.children[0].value = float(cdp.find(".//relative_aerobic_effects").text)
-    cell0_metab_glyco.children[0].value = float(cdp.find(".//relative_glycolytic_effects").text)
-    
-    cell0_toggle_motile.value = bool(cdp.find(".//is_motile").text)
-    cell0_motile_bias.value = float(cdp.find(".//bias").text)
 
     return
 
@@ -179,14 +158,14 @@ write_config_row = widgets.HBox([write_config_button, write_config_file])
 
 
 #----------------------
-tabs = widgets.Tab(children=[ctab.tab, cells.tab, ntab.tab, svg.tab, sub.tab], layout=tab_layout)  
+tabs = widgets.Tab(children=[config_tab.tab, cells.tab, ntab.tab, svg.tab, sub.tab], layout=tab_layout)  
 tab_idx = 0
 tabs.set_title(tab_idx, 'Config Basics'); tab_idx += 1
 tabs.set_title(tab_idx, 'Cells'); tab_idx += 1
 tabs.set_title(tab_idx, 'Nanoparticles'); tab_idx += 1
 # tabs.set_title(tab_idx, 'XML'); tab_idx += 1
 tabs.set_title(tab_idx, 'out:SVG'); tab_idx += 1
-tabs.set_title(tab_idx, 'out:Substrates')
+tabs.set_title(tab_idx, 'out:Substrate')
 
 read_config_row = widgets.HBox([read_config_button, read_config, default_config_button])
 gui = widgets.VBox(children=[read_config_row, tabs, write_config_row, run_button.w])

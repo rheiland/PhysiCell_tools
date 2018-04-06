@@ -20,7 +20,7 @@ class CellsTab(object):
 
         label_cycle = Label('Cycle:')   # no worky:  ,style={'font_weight': 'bold'})
 
-        cell0_max_birth_rate = HBox([BoundedFloatText(
+        self.max_birth_rate = HBox([BoundedFloatText(
             min=0,
             # value = 0.0079,
             description='Max birth rate', style={'description_width': 'initial'},
@@ -28,35 +28,35 @@ class CellsTab(object):
         ), min_inv_units], layout=Layout(width='300px'))
 
         width_cell_params_units = '230px'
-        cell0_o2_prolif_sat = HBox([BoundedFloatText(
+        self.o2_prolif_sat = HBox([BoundedFloatText(
             min=0,
             description='$O_2$: Prolif sat',
             layout=Layout(width=constWidth),
         ), mmHg_units], layout=Layout(width=width_cell_params_units))
 
-        cell0_o2_prolif_thresh = HBox([BoundedFloatText(
+        self.o2_prolif_thresh = HBox([BoundedFloatText(
             min=0,
             description='Prolif thresh',
             layout=Layout(width=constWidth),
         ), mmHg_units], layout=Layout(width=width_cell_params_units))
 
-        cell0_o2_ref = HBox([BoundedFloatText(
+        self.o2_ref = HBox([BoundedFloatText(
             min=0,
             description='Ref',
             layout=Layout(width=constWidth),
         ), mmHg_units], layout=Layout(width=width_cell_params_units))
 
-        cell0_glucose_prolif_sat = HBox([BoundedFloatText(
+        self.glucose_prolif_sat = HBox([BoundedFloatText(
             min=0,
             description='$Glc$: Prolif sat',
             layout=Layout(width=constWidth), style={'description_width': 'initial'},
             ), ], layout=Layout(width=width_cell_params_units))
-        cell0_glucose_prolif_thresh = HBox([BoundedFloatText(
+        self.glucose_prolif_thresh = HBox([BoundedFloatText(
             min=0,
             description='Prolif thresh',
             layout=Layout(width=constWidth),
         ), ], layout=Layout(width=width_cell_params_units))
-        cell0_glucose_prolif_ref = HBox([BoundedFloatText(
+        self.glucose_prolif_ref = HBox([BoundedFloatText(
             min=0,
             description='Ref',
             layout=Layout(width=constWidth),
@@ -64,17 +64,17 @@ class CellsTab(object):
 
         # -------
         label_necrosis = Label('Necrosis:')
-        cell0_max_necrosis_rate = HBox([BoundedFloatText(
+        self.max_necrosis_rate = HBox([BoundedFloatText(
             min=0,
             description='Max rate',  # style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
         ), min_inv_units], layout=Layout(width=width_cell_params_units))
-        cell0_o2_necrosis_thresh = HBox([BoundedFloatText(
+        self.o2_necrosis_thresh = HBox([BoundedFloatText(
             min=0,
             description='$O_2$: Thresh',
             layout=Layout(width=constWidth),
         ), mmHg_units], layout=Layout(width=width_cell_params_units))
-        cell0_o2_necrosis_max = HBox([BoundedFloatText(
+        self.o2_necrosis_max = HBox([BoundedFloatText(
             min=0,
             description='Max',
             layout=Layout(width=constWidth),
@@ -82,7 +82,7 @@ class CellsTab(object):
 
         #-------
         label_apoptosis = Label('Apoptosis:')
-        cell0_apoptosis_rate = HBox([BoundedFloatText(
+        self.apoptosis_rate = HBox([BoundedFloatText(
             min=0,
             description='Rate',  # style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
@@ -92,12 +92,12 @@ class CellsTab(object):
         # TODO: enforce sum=1
         label_metabolism = Label('Metabolism (must sum to 1):')
         # TODO: assert these next 2 values sum to 1.0
-        cell0_metab_aero = HBox([BoundedFloatText(
+        self.metab_aero = HBox([BoundedFloatText(
             min=0,max=1,step=0.1,
             description='Aerobic',  #style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
             ), ], layout=Layout(width=width_cell_params_units))
-        cell0_metab_glyco = HBox([BoundedFloatText(
+        self.metab_glyco = HBox([BoundedFloatText(
             min=0,max=1,step=0.1,
             description='Glycolytic',  #style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
@@ -106,39 +106,39 @@ class CellsTab(object):
         #-------
         label_motility = Label('Motility:')
 
-        cell0_toggle_motile = Checkbox(
+        self.toggle_motile = Checkbox(
             description='Motile',
             layout=Layout(width=constWidth),
         )
-        cell0_motile_bias = BoundedFloatText(
+        self.motile_bias = BoundedFloatText(
             min=0,
             max=1,
             step=0.1,
             description='Bias', # style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
         )
-        def cell0_toggle_motile_cb(b):
-            if (cell0_toggle_motile.value):
-                cell0_motile_bias.disabled = False
+        def toggle_motile_cb(b):
+            if (self.toggle_motile.value):
+                self.motile_bias.disabled = False
             else:
-                cell0_motile_bias.disabled = True
+                self.motile_bias.disabled = True
             
-        cell0_toggle_motile.observe(cell0_toggle_motile_cb)
+        self.toggle_motile.observe(toggle_motile_cb)
 
 
         #-------
         label_mechanics = Label('Mechanics:')
-        cell0_max_rel_adhesion_dist = HBox([BoundedFloatText(
+        self.max_rel_adhesion_dist = HBox([BoundedFloatText(
             min=0, step=0.1, #max=1,  
             description='Max adhesion distance', # style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
             ), ], layout=Layout(width=width_cell_params_units))
-        cell0_adhesion_strength = HBox([BoundedFloatText(
+        self.adhesion_strength = HBox([BoundedFloatText(
             min=0, step=0.1, #max=1,  
             description='Adhesion strength', # style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
             ), ], layout=Layout(width=width_cell_params_units))
-        cell0_repulsion_strength = HBox([BoundedFloatText(
+        self.repulsion_strength = HBox([BoundedFloatText(
             min=0, step=0.1, #max=1,  
             description='Repulsion strength', # style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
@@ -146,17 +146,17 @@ class CellsTab(object):
 
         #-------
         label_hypoxia = Label('Hypoxia:')
-        cell0_o2_hypoxic_thresh = HBox([BoundedFloatText(
+        self.o2_hypoxic_thresh = HBox([BoundedFloatText(
             min=0, step=0.1, #max=1,  
             description='$O_2$: Thresh', # style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
             ), mmHg_units], layout=Layout(width=width_cell_params_units))
-        cell0_o2_hypoxic_response = HBox([BoundedFloatText(
+        self.o2_hypoxic_response = HBox([BoundedFloatText(
             min=0, step=0.1, #max=1,  
             description='Response', # style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
             ), mmHg_units], layout=Layout(width=width_cell_params_units))
-        cell0_o2_hypoxic_sat = HBox([BoundedFloatText(
+        self.o2_hypoxic_sat = HBox([BoundedFloatText(
             min=0, step=0.1, #max=1,  
             description='Saturation', # style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
@@ -164,101 +164,101 @@ class CellsTab(object):
 
         #-------
         label_secretion = Label('Secretion:')
-        cell0_secretion_o2_uptake = HBox([BoundedFloatText(
+        self.secretion_o2_uptake = HBox([BoundedFloatText(
             min=0, step=0.1, #max=1,  
             description='$O_2$: Uptake rate', # style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
         ), min_inv_units], layout=Layout(width=width_cell_params_units))
-        cell0_secretion_o2_secretion = HBox([BoundedFloatText(
+        self.secretion_o2_secretion = HBox([BoundedFloatText(
             min=0, step=0.1, #max=1,  
             description='Secretion rate', # style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
         ), min_inv_units], layout=Layout(width=width_cell_params_units))
-        cell0_secretion_o2_sat = HBox([BoundedFloatText(
+        self.secretion_o2_sat = HBox([BoundedFloatText(
             min=0, step=0.1, #max=1,  
             description='Saturation', # style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
         ), mmHg_units], layout=Layout(width=width_cell_params_units))
 
-        cell0_secretion_glc_uptake = HBox([BoundedFloatText(
+        self.secretion_glc_uptake = HBox([BoundedFloatText(
             min=0, step=0.1, #max=1,  
             description='$Glc$: Uptake rate', # style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
         ), min_inv_units], layout=Layout(width=width_cell_params_units))
-        cell0_secretion_glc_secretion = HBox([BoundedFloatText(
+        self.secretion_glc_secretion = HBox([BoundedFloatText(
             min=0, 
             step=0.1,  # max=1,  
             description='Secretion rate', # style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
         ), min_inv_units], layout=Layout(width=width_cell_params_units))
-        cell0_secretion_glc_sat = HBox([BoundedFloatText(
+        self.secretion_glc_sat = HBox([BoundedFloatText(
             min=0, 
             step=0.1,  # max=1,  
             description='Saturation', # style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
         ), mmHg_units], layout=Layout(width=width_cell_params_units))
 
-        cell0_secretion_Hions_uptake = HBox([BoundedFloatText(
+        self.secretion_Hions_uptake = HBox([BoundedFloatText(
             min=0, 
             step=0.1,  # max=1,  
             description='$H$+: Uptake rate', # style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
             ), min_inv_units], layout=Layout(width=width_cell_params_units))
-        cell0_secretion_Hions_secretion = HBox([BoundedFloatText(
+        self.secretion_Hions_secretion = HBox([BoundedFloatText(
             min=0, 
             step=0.1,  # max=1,  
             description='Secretion rate', # style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
         ), min_inv_units], layout=Layout(width=width_cell_params_units))
-        cell0_secretion_Hions_sat = HBox([BoundedFloatText(
+        self.secretion_Hions_sat = HBox([BoundedFloatText(
             min=0, step=0.1,  # max=1,  
             description='Saturation',  # style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
         ), mmHg_units], layout=Layout(width=width_cell_params_units))
 
-        cell0_secretion_ECM_uptake = HBox([BoundedFloatText(
+        self.secretion_ECM_uptake = HBox([BoundedFloatText(
             min=0, step=0.1,  # max=1,  
             description='$ECM$: Uptake rate',  # style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
         ), min_inv_units], layout=Layout(width=width_cell_params_units))
-        cell0_secretion_ECM_secretion = HBox([BoundedFloatText(
+        self.secretion_ECM_secretion = HBox([BoundedFloatText(
             min=0, step=0.1,  # max=1,  
             description='Secretion rate',  # style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
         ), min_inv_units], layout=Layout(width=width_cell_params_units))
-        cell0_secretion_ECM_sat = HBox([BoundedFloatText(
+        self.secretion_ECM_sat = HBox([BoundedFloatText(
             min=0, step=0.1,  # max=1,  
             description='Saturation',  # style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
         ), mmHg_units], layout=Layout(width=width_cell_params_units))
 
-        cell0_secretion_NP1_uptake = HBox([BoundedFloatText(
+        self.secretion_NP1_uptake = HBox([BoundedFloatText(
             min=0, step=0.1,  # max=1,  
             description='$NP1$: Uptake rate',  # style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
         ), min_inv_units], layout=Layout(width=width_cell_params_units))
-        cell0_secretion_NP1_secretion = HBox([BoundedFloatText(
+        self.secretion_NP1_secretion = HBox([BoundedFloatText(
             min=0, step=0.1,  # max=1,  
             description='Secretion rate',  # style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
         ), min_inv_units], layout=Layout(width=width_cell_params_units))
-        cell0_secretion_NP1_sat = HBox([BoundedFloatText(
+        self.secretion_NP1_sat = HBox([BoundedFloatText(
             min=0, step=0.1,  # max=1,  
             description='Saturation',  # style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
         ), mmHg_units], layout=Layout(width=width_cell_params_units))
 
-        cell0_secretion_NP2_uptake = HBox([BoundedFloatText(
+        self.secretion_NP2_uptake = HBox([BoundedFloatText(
             min=0, step=0.1,   # max=1,  
             description='$NP2$: Uptake rate',  # style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
         ), min_inv_units], layout=Layout(width=width_cell_params_units))
-        cell0_secretion_NP2_secretion = HBox([BoundedFloatText(
+        self.secretion_NP2_secretion = HBox([BoundedFloatText(
             min=0, step=0.1,   # max=1,  
             description='Secretion rate',  # style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
         ), min_inv_units], layout=Layout(width=width_cell_params_units))
-        cell0_secretion_NP2_sat = HBox([BoundedFloatText(
+        self.secretion_NP2_sat = HBox([BoundedFloatText(
             min=0, step=0.1,   # max=1,  
             description='Saturation',  # style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
@@ -269,22 +269,51 @@ class CellsTab(object):
         # cells_o2_prolif_sat2 = HBox([o2_prolif_sat,min_inv_units])
         # cells_o2_prolif_thresh2 = HBox([o2_prolif_thresh, mmHg_units])
         cells_row1 = HBox([cell_name])
-        cells_row2 = HBox([cell0_o2_prolif_sat, cell0_o2_prolif_thresh, cell0_o2_ref])
-        cells_row3 = HBox([cell0_glucose_prolif_sat, cell0_glucose_prolif_thresh, cell0_glucose_prolif_ref])
-        cell0_necrosis_row = HBox([cell0_o2_necrosis_thresh, cell0_o2_necrosis_max])
+        cells_row2 = HBox([self.o2_prolif_sat, self.o2_prolif_thresh, self.o2_ref])
+        cells_row3 = HBox([self.glucose_prolif_sat, self.glucose_prolif_thresh, self.glucose_prolif_ref])
+        self.necrosis_row = HBox([self.o2_necrosis_thresh, self.o2_necrosis_max])
         self.tab = VBox(
             [cells_row1, 
-             label_cycle, cell0_max_birth_rate, cells_row2, cells_row3,
-             label_necrosis, cell0_max_necrosis_rate, cell0_necrosis_row,
-             label_apoptosis, cell0_apoptosis_rate,
-             label_metabolism, HBox([cell0_metab_aero, cell0_metab_glyco]),
-             label_motility, HBox([cell0_toggle_motile, cell0_motile_bias]),
-             label_mechanics, HBox([cell0_max_rel_adhesion_dist, cell0_adhesion_strength, cell0_repulsion_strength]),
-             label_hypoxia, HBox([cell0_o2_hypoxic_thresh, cell0_o2_hypoxic_response, cell0_o2_hypoxic_sat]),
-             label_secretion, HBox([cell0_secretion_o2_uptake, cell0_secretion_o2_secretion, cell0_secretion_o2_sat]),
-             HBox([cell0_secretion_glc_uptake, cell0_secretion_glc_secretion, cell0_secretion_glc_sat]),
-             HBox([cell0_secretion_Hions_uptake, cell0_secretion_Hions_secretion, cell0_secretion_Hions_sat]),
-             HBox([cell0_secretion_ECM_uptake, cell0_secretion_ECM_secretion, cell0_secretion_ECM_sat]),
-             HBox([cell0_secretion_NP1_uptake, cell0_secretion_NP1_secretion, cell0_secretion_NP1_sat]),
-             HBox([cell0_secretion_NP2_uptake, cell0_secretion_NP1_secretion, cell0_secretion_NP2_sat]),
+             label_cycle, self.max_birth_rate, cells_row2, cells_row3,
+             label_necrosis, self.max_necrosis_rate, self.necrosis_row,
+             label_apoptosis, self.apoptosis_rate,
+             label_metabolism, HBox([self.metab_aero, self.metab_glyco]),
+             label_motility, HBox([self.toggle_motile, self.motile_bias]),
+             label_mechanics, HBox([self.max_rel_adhesion_dist, self.adhesion_strength, self.repulsion_strength]),
+             label_hypoxia, HBox([self.o2_hypoxic_thresh, self.o2_hypoxic_response, self.o2_hypoxic_sat]),
+             label_secretion, HBox([self.secretion_o2_uptake, self.secretion_o2_secretion, self.secretion_o2_sat]),
+             HBox([self.secretion_glc_uptake, self.secretion_glc_secretion, self.secretion_glc_sat]),
+             HBox([self.secretion_Hions_uptake, self.secretion_Hions_secretion, self.secretion_Hions_sat]),
+             HBox([self.secretion_ECM_uptake, self.secretion_ECM_secretion, self.secretion_ECM_sat]),
+             HBox([self.secretion_NP1_uptake, self.secretion_NP1_secretion, self.secretion_NP1_sat]),
+             HBox([self.secretion_NP2_uptake, self.secretion_NP1_secretion, self.secretion_NP2_sat]),
             ])
+
+    def fill_gui(self, xml_root):
+        uep = xml_root.find(".//cell_definition")  # find unique entry point into XML
+    #     e2 = e1.find('.//')
+        self.max_birth_rate.children[0].value = float(uep.find(".//max_birth_rate").text)
+        self.o2_prolif_sat.children[0].value = float(uep.find(".//o2_proliferation_saturation").text)
+        self.o2_prolif_thresh.children[0].value = float(uep.find(".//o2_proliferation_threshold").text)
+        self.o2_ref.children[0].value = float(uep.find(".//o2_reference").text)
+        
+        self.glucose_prolif_ref.children[0].value = float(uep.find(".//glucose_proliferation_reference").text)
+        self.glucose_prolif_sat.children[0].value = float(uep.find(".//glucose_proliferation_saturation").text)
+        self.glucose_prolif_thresh.children[0].value = float(uep.find(".//glucose_proliferation_threshold").text)
+        
+        self.max_necrosis_rate.children[0].value = float(uep.find(".//max_necrosis_rate").text)
+        self.o2_necrosis_thresh.children[0].value = float(uep.find(".//o2_necrosis_threshold").text)
+        self.o2_necrosis_max.children[0].value = float(uep.find(".//o2_necrosis_max").text)
+        
+        self.apoptosis_rate.children[0].value = float(uep.find(".//apoptosis_rate").text)
+        
+        self.metab_aero.children[0].value = float(uep.find(".//relative_aerobic_effects").text)
+        self.metab_glyco.children[0].value = float(uep.find(".//relative_glycolytic_effects").text)
+        
+        self.toggle_motile.value = bool(uep.find(".//is_motile").text)
+        self.motile_bias.value = float(uep.find(".//bias").text)
+
+        self.max_rel_adhesion_dist.children[0].value = float(uep.find(".//max_relative_adhesion_distance").text)
+        self.adhesion_strength.children[0].value = float(uep.find(".//adhesion_strength").text)
+        self.repulsion_strength.children[0].value = float(uep.find(".//repulsion_strength").text)
+
