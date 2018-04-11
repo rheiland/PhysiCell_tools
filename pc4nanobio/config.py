@@ -21,27 +21,28 @@ class ConfigTab(object):
         # my_domain = [0,0,-10, 2000,2000,10, 20,20,20]  # [x,y,zmin,  x,y,zmax, x,y,zdelta]
         label_domain = Label('Domain ($\mu M$):')
         self.xmin = FloatText(
-            description='$X_{min}$',
+            # description='$X_{min}$',
+            description='Xmin',
             layout=Layout(width=constWidth),
         )
         self.ymin = FloatText(
-            description='$Y_{min}$',
+            description='Ymin',
             layout=Layout(width=constWidth),
         )
         self.zmin = FloatText(
-            description='$Z_{min}$',
+            description='Zmin',
             layout=Layout(width=constWidth),
         )
         self.xmax = FloatText(
-            description='$X_{max}$',
+            description='Xmax',
             layout=Layout(width=constWidth),
         )
         self.ymax = FloatText(
-            description='$Y_{max}$',
+            description='Ymax',
             layout=Layout(width=constWidth),
         )
         self.zmax = FloatText(
-            description='$Z_{max}$',
+            description='Zmax',
             layout=Layout(width=constWidth),
         )
         self.tmax = BoundedFloatText(
@@ -52,17 +53,17 @@ class ConfigTab(object):
         )
         self.xdelta = BoundedFloatText(
             min=1.,
-            description='$X_{delta}$',
+            description='Xdelta',
             layout=Layout(width=constWidth),
         )
         self.ydelta = BoundedFloatText(
             min=1.,
-            description='$Y_{delta}$',
+            description='Ydelta',
             layout=Layout(width=constWidth),
         )
         self.zdelta = BoundedFloatText(
             min=1.,
-            description='$Z_{delta}$',
+            description='Zdelta',
             layout=Layout(width=constWidth),
         )
         self.tdelta = BoundedFloatText(
