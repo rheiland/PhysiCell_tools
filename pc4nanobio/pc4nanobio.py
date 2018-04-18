@@ -1,14 +1,14 @@
 # Rf  https://www.python.org/dev/peps/pep-0008/
 import ipywidgets as widgets
 from hublib.ui import RunCommand
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET  # https://docs.python.org/2/library/xml.etree.elementtree.html
 import os
 import glob
 from config import ConfigTab
 from cells import CellsTab
 from nano import NanoTab
 from svg import SVGTab
-from substrates import SubtrateTab
+from substrates import SubstrateTab
 
 #join_our_list = "(Join/ask questions at https://groups.google.com/forum/#!forum/physicell-users)\n"
 
@@ -22,9 +22,9 @@ tab_layout = widgets.Layout(width='800px',   # border='2px solid black',
 # create the tabs, but don't display yet
 config_tab = ConfigTab()
 cells = CellsTab()
-ntab = NanoTab()
+nanopart = NanoTab()
 svg = SVGTab()
-sub = SubtrateTab()
+sub = SubstrateTab()
 
 
 def read_config_file_cb(_b):
@@ -85,6 +85,7 @@ def default_config_file_cb(b):
 
 
 def fill_gui_params(config_file):
+    global xml_root
     # FIXME:  this will need modified to use new classes
     # for example, 'xmin' is created in config.py.  Make it a class
     # variable by putting "self." before the name.  Below, it
@@ -99,10 +100,11 @@ def fill_gui_params(config_file):
     # ...
     
     tree = ET.parse(config_file)
-    root = tree.getroot()
+    xml_root = tree.getroot()
 
-    config_tab.fill_gui(root)
-    cells.fill_gui(root)
+    config_tab.fill_gui(xml_root)
+    cells.fill_gui(xml_root)
+    nanopart.fill_gui(xml_root)
 #    config_tab.xmin.value = float(root.find(".//x_min").text)
     
 #    xmin.value = float(root.find(".//x_min").text)
@@ -158,7 +160,7 @@ write_config_row = widgets.HBox([write_config_button, write_config_file])
 
 
 #----------------------
-tabs = widgets.Tab(children=[config_tab.tab, cells.tab, ntab.tab, svg.tab, sub.tab], layout=tab_layout)  
+tabs = widgets.Tab(children=[config_tab.tab, cells.tab, nanopart.tab, svg.tab, sub.tab], layout=tab_layout)  
 tab_idx = 0
 tabs.set_title(tab_idx, 'Config Basics'); tab_idx += 1
 tabs.set_title(tab_idx, 'Cells'); tab_idx += 1
@@ -168,4 +170,15 @@ tabs.set_title(tab_idx, 'out:SVG'); tab_idx += 1
 tabs.set_title(tab_idx, 'out:Substrate')
 
 read_config_row = widgets.HBox([read_config_button, read_config, default_config_button])
+
+tab_file = open("bin/tab_helper.png", "rb")
+image = tab_file.read()
+tab_helper = widgets.Image(
+    value=image,
+    format='png',
+    width=595,
+    height=55,
+)
+
+#gui = widgets.VBox(children=[read_config_row, tab_helper, tabs, write_config_row, run_button.w])
 gui = widgets.VBox(children=[read_config_row, tabs, write_config_row, run_button.w])

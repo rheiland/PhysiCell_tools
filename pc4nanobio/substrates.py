@@ -7,7 +7,7 @@ import matplotlib.colors as mplc
 import scipy.io
 
 
-class SubtrateTab(object):
+class SubstrateTab(object):
 
     def __init__(self):
         
@@ -69,7 +69,7 @@ class SubtrateTab(object):
 #        self.field_index = self.mcds_field.options.index(self.mcds_field.value) + 4
 #        self.field_index = self.mcds_field.options[self.mcds_field.value]
         self.field_index = self.mcds_field.value + 4
-        print('field_index=',self.field_index)
+#        print('field_index=',self.field_index)
         self.mcds_plot.update()
 
     def plot_substrate(self, fid):

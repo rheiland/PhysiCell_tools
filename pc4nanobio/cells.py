@@ -6,7 +6,7 @@ class CellsTab(object):
  
     def __init__(self): 
         constWidth = '180px'
-        width_cell_params_units = '230px'
+        width_cell_params_units = '240px'
         
         cell_name = Text(
             value='untreated cancer',
@@ -15,43 +15,43 @@ class CellsTab(object):
 
         #-------------------------------
         label_cycle = Label('Cycle:')
-        self.max_birth_rate = HBox([BoundedFloatText(min=0, 
+        self.max_birth_rate = HBox([BoundedFloatText(min=0, step=0.1,
            description='max birth rate', style={'description_width': 'initial'}, layout=Layout(width=constWidth), ), Label('1/min')], 
            layout=Layout(width=width_cell_params_units))
-        self.o2_proliferation_saturation = HBox([BoundedFloatText(min=0, 
+        self.o2_proliferation_saturation = HBox([BoundedFloatText(min=0, step=0.1,
            description='o2: prolif sat', layout=Layout(width=constWidth), ), Label('mmHg')], 
            layout=Layout(width=width_cell_params_units))
-        self.o2_proliferation_threshold = HBox([BoundedFloatText(min=0, 
+        self.o2_proliferation_threshold = HBox([BoundedFloatText(min=0, step=0.1,
            description='prolif thresh', layout=Layout(width=constWidth), ), Label('mmHg')], 
            layout=Layout(width=width_cell_params_units))
-        self.o2_reference = HBox([BoundedFloatText(min=0, 
+        self.o2_reference = HBox([BoundedFloatText(min=0, step=0.1,
            description='ref', layout=Layout(width=constWidth), ), Label('mmHg')], 
            layout=Layout(width=width_cell_params_units))
-        self.glucose_proliferation_reference = HBox([BoundedFloatText(min=0, 
+        self.glucose_proliferation_reference = HBox([BoundedFloatText(min=0, step=0.1,
            description='Glc: prolif ref', layout=Layout(width=constWidth), ), ], 
            layout=Layout(width=width_cell_params_units))
-        self.glucose_proliferation_saturation = HBox([BoundedFloatText(min=0, 
+        self.glucose_proliferation_saturation = HBox([BoundedFloatText(min=0, step=0.1,
            description='prolif sat', layout=Layout(width=constWidth), ), ], 
            layout=Layout(width=width_cell_params_units))
-        self.glucose_proliferation_threshold = HBox([BoundedFloatText(min=0, 
+        self.glucose_proliferation_threshold = HBox([BoundedFloatText(min=0, step=0.1,
            description='prolif thresh', layout=Layout(width=constWidth), ), ], 
            layout=Layout(width=width_cell_params_units))
         
         #-------------------------------
         label_necrosis = Label('Necrosis:')
-        self.max_necrosis_rate = HBox([BoundedFloatText(min=0, 
+        self.max_necrosis_rate = HBox([BoundedFloatText(min=0, step=0.1,
            description='max rate', layout=Layout(width=constWidth), ), Label('1/min')], 
            layout=Layout(width=width_cell_params_units))
-        self.o2_necrosis_threshold = HBox([BoundedFloatText(min=0, 
+        self.o2_necrosis_threshold = HBox([BoundedFloatText(min=0, step=0.1,
            description='o2: thresh', layout=Layout(width=constWidth), ), Label('mmHg')], 
            layout=Layout(width=width_cell_params_units))
-        self.o2_necrosis_max = HBox([BoundedFloatText(min=0, 
+        self.o2_necrosis_max = HBox([BoundedFloatText(min=0, step=0.1,
            description='max', layout=Layout(width=constWidth), ), Label('mmHg')], 
            layout=Layout(width=width_cell_params_units))
         
         #-------------------------------
         label_apoptosis = Label('Apoptosis:')
-        self.apoptosis_rate = HBox([BoundedFloatText(min=0, 
+        self.apoptosis_rate = HBox([BoundedFloatText(min=0, step=0.1,
            description='rate', layout=Layout(width=constWidth), ), Label('1/min')], 
            layout=Layout(width=width_cell_params_units))
 
@@ -59,13 +59,11 @@ class CellsTab(object):
         # TODO: enforce sum=1
         label_metabolism = Label('Metabolism (must sum to 1):')
         # TODO: assert these next 2 values sum to 1.0
-        self.metab_aero = HBox([BoundedFloatText(
-            min=0,max=1,step=0.1,
+        self.metab_aero = HBox([BoundedFloatText(min=0,max=1,step=0.1,
             description='Aerobic',  #style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
             ), ], layout=Layout(width=width_cell_params_units))
-        self.metab_glyco = HBox([BoundedFloatText(
-            min=0,max=1,step=0.1,
+        self.metab_glyco = HBox([BoundedFloatText(min=0,max=1,step=0.1,
             description='Glycolytic',  #style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
         ), ], layout=Layout(width=width_cell_params_units))
@@ -78,20 +76,16 @@ class CellsTab(object):
             description='Motile',
             layout=Layout(width=constWidth),
         )
-        self.motile_bias = BoundedFloatText(
-            min=0,
-            max=1,
-            step=0.1,
+        self.motile_bias = HBox([BoundedFloatText(max=1, step=0.1,
             description='bias', # style={'description_width': 'initial'},
             layout=Layout(width=constWidth),
-        )
+        ), ], layout=Layout(width=width_cell_params_units))
 #        speed_units = HTMLMath(value=r"$\frac{\mu M^2}{min}$")
-        speed_units = HTMLMath(value=r"$\frac{\mu M}{min}$")
-#        speed_units = Label('um/min')
-        self.speed = HBox([BoundedFloatText(min=0, 
+        speed_units = Label('µm/min')   # use "option m" (Mac, for micro symbol)
+        self.speed = HBox([BoundedFloatText(min=0, step=0.1,
            description='speed', layout=Layout(width=constWidth), ), speed_units], 
            layout=Layout(width=width_cell_params_units))
-        self.persistence_time = HBox([BoundedFloatText(min=0, 
+        self.persistence_time = HBox([BoundedFloatText(min=0, step=0.1,
            description='persistence time', layout=Layout(width=constWidth), ), Label('min')], 
            layout=Layout(width=width_cell_params_units))
         
@@ -130,13 +124,13 @@ class CellsTab(object):
         
         #-------------------------------
         label_hypoxia = Label('Hypoxia:')
-        self.o2_hypoxic_threshold = HBox([BoundedFloatText(min=0, 
+        self.o2_hypoxic_threshold = HBox([BoundedFloatText(min=0, step=0.1,
            description='o2: threshold', layout=Layout(width=constWidth), ), Label('mmHg')], 
            layout=Layout(width=width_cell_params_units))
-        self.o2_hypoxic_response = HBox([BoundedFloatText(min=0, 
+        self.o2_hypoxic_response = HBox([BoundedFloatText(min=0, step=0.1,
            description='response', layout=Layout(width=constWidth), ), Label('mmHg')], 
            layout=Layout(width=width_cell_params_units))
-        self.o2_hypoxic_saturation = HBox([BoundedFloatText(min=0, 
+        self.o2_hypoxic_saturation = HBox([BoundedFloatText(min=0, step=0.1,
            description='saturation', layout=Layout(width=constWidth), ), Label('mmHg')], 
            layout=Layout(width=width_cell_params_units))
         
@@ -146,31 +140,31 @@ class CellsTab(object):
         self.secretion_rate = []
         self.saturation_density = []
 
-        self.uptake_rate.append(  HBox([BoundedFloatText(min=0, 
+        self.uptake_rate.append(  HBox([BoundedFloatText(min=0, step=0.1,
            description='o2: uptake rate', layout=Layout(width=constWidth), ), Label('1/min')], 
            layout=Layout(width=width_cell_params_units)) )
-        self.uptake_rate.append(  HBox([BoundedFloatText(min=0, 
+        self.uptake_rate.append(  HBox([BoundedFloatText(min=0, step=0.1,
            description='Glc: uptake rate', layout=Layout(width=constWidth), ), Label('1/min')], 
            layout=Layout(width=width_cell_params_units)) )
-        self.uptake_rate.append(  HBox([BoundedFloatText(min=0, 
+        self.uptake_rate.append(  HBox([BoundedFloatText(min=0, step=0.1,
            description='H+: uptake rate', layout=Layout(width=constWidth), ), Label('1/min')], 
            layout=Layout(width=width_cell_params_units)) )
-        self.uptake_rate.append(  HBox([BoundedFloatText(min=0, 
+        self.uptake_rate.append(  HBox([BoundedFloatText(min=0, step=0.1,
            description='ECM: uptake rate', layout=Layout(width=constWidth), ), Label('1/min')], 
            layout=Layout(width=width_cell_params_units)) )
-        self.uptake_rate.append(  HBox([BoundedFloatText(min=0, 
+        self.uptake_rate.append(  HBox([BoundedFloatText(min=0, step=0.1,
            description='NP1: uptake rate', layout=Layout(width=constWidth), ), Label('1/min')], 
            layout=Layout(width=width_cell_params_units)) )
-        self.uptake_rate.append(  HBox([BoundedFloatText(min=0, 
+        self.uptake_rate.append(  HBox([BoundedFloatText(min=0, step=0.1,
            description='NP2: uptake rate', layout=Layout(width=constWidth), ), Label('1/min')], 
            layout=Layout(width=width_cell_params_units)) )
 
 
         for idx in range(6):
-            self.secretion_rate.append( HBox([BoundedFloatText(min=0, 
+            self.secretion_rate.append( HBox([BoundedFloatText(min=0, step=0.1,
                description='secretion rate', layout=Layout(width=constWidth), ), Label('1/min')], 
                layout=Layout(width=width_cell_params_units)) )
-            self.saturation_density.append(  HBox([BoundedFloatText(min=0, 
+            self.saturation_density.append(  HBox([BoundedFloatText(min=0, step=0.1,
                description='saturation', layout=Layout(width=constWidth), ), ], 
                layout=Layout(width=width_cell_params_units)) )
 
