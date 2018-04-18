@@ -62,7 +62,7 @@ class NanoSphere(object):
 
         self.effect_model_choice = Dropdown(
             # options=['1', '2', '3','4','5','6'],
-            options={'Simple (conc)' : 0, 'Intermed (AUC)' : 1, 'Details' : 2},
+            options={'Simple (conc)' : 0, 'Intermed (AUC)' : 1, 'Details (act/deact)' : 2},
             value=0,
             # description='Field',
             layout=Layout(width=constWidth)
@@ -439,7 +439,7 @@ class NanoRod(object):
 
         self.effect_model_choice = Dropdown(
             # options=['1', '2', '3','4','5','6'],
-            options={'Simple (conc)' : 0, 'Intermed (AUC)' : 1, 'Details' : 2},
+            options={'Simple (conc)' : 0, 'Intermed (AUC)' : 1, 'Details (act/deact)' : 2},
             value=0,
             # description='Field',
             layout=Layout(width=constWidth)
@@ -711,7 +711,9 @@ class NanoRod(object):
     def fill_gui(self, xml_root):  # for Reconfig (rod)
 
         # find unique entry point into XML 
-        uep = xml_root.find('.//nanoparticle').find('.//basic_phenotype').find('.//nanoparticle')
+#        uep = xml_root.find('.//nanoparticle').find('.//basic_phenotype').find('.//nanoparticle')
+        for np in xml_root.iter('nanoparticle'):  # hacky: iterate thru all (2) NPs to land on last/2nd
+            uep = np
 
         self.diffusion_coefficient.children[0].value = float(uep.find('.//diffusion_coefficient').text)
         self.survival_lifetime.children[0].value = float(uep.find('.//survival_lifetime').text)
@@ -757,22 +759,103 @@ class NanoRod(object):
 #                break
 
 
+class NanoTransform(object):
+
+    def __init__(self):
+        tab_height = '500px'
+        width_cell_params_units = '250px'
+
+        np_tab_layout = Layout(width='800px',  # border='2px solid black',
+                               height='350px', overflow_y='scroll')
+        tab_layout = Layout(width='800px',   # border='2px solid black',
+                            height=tab_height, overflow_y='scroll')
+
+        constWidth = '180px'
+
+        self.start_NP_ID = []
+        self.end_NP_ID = []
+        start_end_NP_ID = []
+        self.start_substrate_ID = []
+        self.end_substrate_ID = []
+        start_end_substrate_ID = []
+        self.condition_substrate_ID = []
+        self.condition1 = []
+        self.rate1 = []
+        self.condition2 = []
+        self.rate2 = []
+
+        label_xform1 = Label('Transform #1:')
+
+        for idx in range(2):
+            self.start_NP_ID.append( BoundedIntText(min=0, 
+                description='NP ID', layout=Layout(width=constWidth), ) )
+            self.end_NP_ID.append( BoundedIntText(min=0, 
+                layout=Layout(width='90px'), ) )
+            start_end_NP_ID.append( HBox([self.start_NP_ID[idx], Label('-->'),self.end_NP_ID[idx]]) )
+
+            self.start_substrate_ID.append( BoundedIntText(min=0, 
+                description='substrate ID', layout=Layout(width=constWidth), ) )
+            self.end_substrate_ID.append( BoundedIntText(min=0, 
+                layout=Layout(width='90px'), ) )
+            start_end_substrate_ID.append( HBox([self.start_substrate_ID[idx], Label('-->'),self.end_substrate_ID[idx]]) )
+
+            self.condition_substrate_ID.append( BoundedIntText(min=0, 
+                description='cond substrate ID', layout=Layout(width=constWidth), ) )
+            self.condition1.append( BoundedFloatText(min=0, 
+                description='condition1', layout=Layout(width=constWidth), ) )
+            self.rate1.append( HBox([BoundedFloatText(min=0, step=0.1,
+                description='rate1', layout=Layout(width=constWidth), ), Label('1/min')],
+                layout=Layout(width=width_cell_params_units)) )
+
+            self.condition2.append( BoundedFloatText(min=0, 
+                description='condition2', layout=Layout(width=constWidth), ) )
+            self.rate2.append( HBox([BoundedFloatText(min=0, step=0.1,
+                description='rate2', layout=Layout(width=constWidth), ), Label('1/min')],
+                layout=Layout(width=width_cell_params_units)) )
+
+        #-------------------
+        label_xform2 = Label('Transform #2:')
+
+        #-------------------
+#        self.tab = VBox([label_xform1, start_end_NP_ID, start_end_substrate_ID,
+#            self.condition_substrate_ID, self.condition1,self.rate1,  self.condition2,self.rate2])
+        self.tab = VBox([label_xform1, start_end_NP_ID[0], start_end_substrate_ID[0],
+            self.condition_substrate_ID[0], self.condition1[0],self.rate1[0],  
+            self.condition2[0],self.rate2[0],
+            label_xform2, start_end_NP_ID[1], start_end_substrate_ID[1],
+            self.condition_substrate_ID[1], self.condition1[1],self.rate1[1],  
+            self.condition2[1],self.rate2[1]] )
+
+    def fill_gui(self, xml_root):  # for Transformations
+
+        uep = xml_root.find('.//transformations')  # find unique entry point into XML 
+        idx = 0
+        for el in uep.findall('transformation'):  # currently 2 
+            kids = el.getchildren()  # assume 3, which follow:
+            self.start_NP_ID[idx].value = int(kids[0].text)
+            self.end_NP_ID[idx].value = int(kids[1].text)
+            self.start_substrate_ID[idx].value = int(kids[2].text)
+            self.end_substrate_ID[idx].value = int(kids[3].text)
+            self.condition_substrate_ID[idx].value = int(kids[4].text)
+            self.condition1[idx].value = float(kids[5].text)
+            self.rate1[idx].children[0].value = float(kids[6].text)  # need 'children' if a HBox
+            self.condition2[idx].value = float(kids[7].text)
+            self.rate2[idx].children[0].value = float(kids[8].text)
+            idx += 1
+            
+
 class NanoTab(object):
 
     def __init__(self):
         self.sphere = NanoSphere()
         self.rod = NanoRod()
+        self.xform = NanoTransform()
 
         tab_height = '500px'
         tab_layout = Layout(width='800px',   # border='2px solid black',
                             height=tab_height, overflow_y='scroll')
-        xforms_tab = Text(
-            value='.',
-            description='dummy:',
-            layout=tab_layout,
-        )
 
-        self.tab = Tab(children=[self.sphere.tab, self.rod.tab, xforms_tab])
+        self.tab = Tab(children=[self.sphere.tab, self.rod.tab, self.xform.tab])
         self.tab.set_title(0, 'Preform (spherical)')
         self.tab.set_title(1, 'Reconfig (rod)')
         self.tab.set_title(2, 'Transformations')
@@ -782,4 +865,5 @@ class NanoTab(object):
 #        uep = xml_root.find('.//cell_definition')  # find unique entry point into XML 
         self.sphere.fill_gui(xml_root)
         self.rod.fill_gui(xml_root)
+        self.xform.fill_gui(xml_root)
 
