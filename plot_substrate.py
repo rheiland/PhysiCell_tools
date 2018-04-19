@@ -1,4 +1,5 @@
 import sys,pathlib
+import math
 import scipy.io
 import matplotlib.pyplot as plt
 #import matplotlib.colors as mplc
@@ -29,23 +30,24 @@ def plot_substrate(FileId):
 #    fig = plt.figure(figsize=(7,7))
     fig = plt.figure(figsize=(7,5.8))
 
-    grid2D = M[0,:].reshape(200,200)
+    N = int(math.sqrt(len(M[0,:])))
+    grid2D = M[0,:].reshape(N,N)
     xvec = grid2D[0,:]
     #xvec.size
     #xvec.shape
     num_contours = 30
     num_contours = 10
 #    my_plot = plt.contourf(xvec,xvec,M[field_index,:].reshape(100,100), num_contours, cmap='viridis') #'viridis'
-    my_plot = plt.contourf(xvec,xvec,M[field_index,:].reshape(200,200), num_contours, cmap='viridis') #'viridis'
+    my_plot = plt.contourf(xvec,xvec,M[field_index,:].reshape(N,N), num_contours, cmap='viridis') #'viridis'
     plt.colorbar(my_plot)
     axes_min = 0
     axes_min = -2000
     axes_max = 2000
-    plt.xlim(axes_min,axes_max)
-    plt.ylim(axes_min,axes_max)
+#    plt.xlim(axes_min,axes_max)
+#    plt.ylim(axes_min,axes_max)
 #     plt.title(fname)
 #     ax.set_title(fname)
 #    plt.axis('equal')
     plt.show()
 
-plot_substrate(0)
+plot_substrate(1)
