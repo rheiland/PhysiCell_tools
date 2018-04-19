@@ -202,17 +202,19 @@ class ConfigTab(object):
         self.decay_rate = []
 
         width_cell_params_units = '250px'
+        disable_substrates_flag = True
+            
         self.substrate.append(  HBox([BoundedFloatText(min=0, step=0.1,
-           description='o2: ', layout=Layout(width=constWidth), ), Label('mmHg')], 
+           description='o2: ', disabled=disable_substrates_flag, layout=Layout(width=constWidth), ), Label('mmHg')], 
            layout=Layout(width=width_cell_params_units)) )
         self.substrate.append(  HBox([BoundedFloatText(min=0, step=0.1,
-           description='Glc: ', layout=Layout(width=constWidth), ), ], 
+           description='Glc: ', disabled=disable_substrates_flag, layout=Layout(width=constWidth), ), ], 
            layout=Layout(width=width_cell_params_units)) )
         self.substrate.append(  HBox([BoundedFloatText(min=0, step=0.1,
-           description='H+: ', layout=Layout(width=constWidth), ), Label('pH')], 
+           description='H+: ', disabled=disable_substrates_flag, layout=Layout(width=constWidth), ), Label('pH')], 
            layout=Layout(width=width_cell_params_units)) )
         self.substrate.append(  HBox([BoundedFloatText(min=0, step=0.1,
-           description='ECM: ', layout=Layout(width=constWidth), ), ], 
+           description='ECM: ', disabled=disable_substrates_flag, layout=Layout(width=constWidth), ), ], 
            layout=Layout(width=width_cell_params_units)) )
         # self.substrate.append(  HBox([BoundedFloatText(min=0, step=0.1,
         #    description='NP1: ', layout=Layout(width=constWidth), ), ], 
@@ -223,10 +225,10 @@ class ConfigTab(object):
 
         for idx in range(4):
             self.diffusion_coef.append( HBox([BoundedFloatText(min=0, step=0.1,
-               description='diffusion coef', layout=Layout(width=constWidth), ), Label('µm^2/min')], 
+               description='diffusion coef', disabled=disable_substrates_flag, layout=Layout(width=constWidth), ), Label('µm^2/min')], 
                layout=Layout(width=width_cell_params_units)) )
             self.decay_rate.append(  HBox([BoundedFloatText(min=0, step=0.1,
-               description='decay rate', layout=Layout(width=constWidth), ), Label('1/min')], 
+               description='decay rate', disabled=disable_substrates_flag, layout=Layout(width=constWidth), ), Label('1/min')], 
                layout=Layout(width=width_cell_params_units)) )
 
 

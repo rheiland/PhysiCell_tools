@@ -10,6 +10,7 @@ class CellsTab(object):
         
         cell_name = Text(
             value='untreated cancer',
+            disabled = True,
             description='Cell line name', style={'description_width': 'initial'},
         )
 

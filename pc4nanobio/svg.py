@@ -27,14 +27,17 @@ class SVGTab(object):
         self.axes_max = 2000
         self.tab = HBox([svg_plot], layout=tab_layout)
 
+        self.output_dir_str = os.getenv('RESULTSDIR') + "/pc4nanobio/"
+
     def plot_svg(self, SVG):
         # global current_idx, axes_max
         # print('plot_svg: SVG=', SVG)
         fname = "snapshot%08d.svg" % SVG
-        # fullname = output_dir_str + fname
-        fullname = fname
+#        fullname = self.output_dir_str + fname
+        fullname = fname  # do this for nanoHUB! (data appears in root dir?)
         if not os.path.isfile(fullname):
-            print("File does not exist: ", fname)
+#            print("File does not exist: ", fname)
+            print("File does not exist: ", fullname)
             return
 
         xlist = deque()
@@ -43,7 +46,8 @@ class SVGTab(object):
         rgb_list = deque()
 
         #  print('\n---- ' + fname + ':')
-        tree = ET.parse(fname)
+#        tree = ET.parse(fname)
+        tree = ET.parse(fullname)
         root = tree.getroot()
         #  print('--- root.tag ---')
         #  print(root.tag)

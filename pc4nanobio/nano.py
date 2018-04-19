@@ -64,6 +64,7 @@ class NanoSphere(object):
             # options=['1', '2', '3','4','5','6'],
             options={'Simple (conc)' : 0, 'Intermed (AUC)' : 1, 'Details (act/deact)' : 2},
             value=0,
+            disabled = True,
             # description='Field',
             layout=Layout(width=constWidth)
         )
@@ -441,6 +442,7 @@ class NanoRod(object):
             # options=['1', '2', '3','4','5','6'],
             options={'Simple (conc)' : 0, 'Intermed (AUC)' : 1, 'Details (act/deact)' : 2},
             value=0,
+            disabled = True,
             # description='Field',
             layout=Layout(width=constWidth)
         )
@@ -786,30 +788,32 @@ class NanoTransform(object):
 
         label_xform1 = Label('Transform #1:')
 
+        disabled_flag = True
+
         for idx in range(2):
-            self.start_NP_ID.append( BoundedIntText(min=0, 
+            self.start_NP_ID.append( BoundedIntText(min=0, disabled=disabled_flag,
                 description='NP ID', layout=Layout(width=constWidth), ) )
-            self.end_NP_ID.append( BoundedIntText(min=0, 
+            self.end_NP_ID.append( BoundedIntText(min=0, disabled=disabled_flag,
                 layout=Layout(width='90px'), ) )
             start_end_NP_ID.append( HBox([self.start_NP_ID[idx], Label('-->'),self.end_NP_ID[idx]]) )
 
-            self.start_substrate_ID.append( BoundedIntText(min=0, 
+            self.start_substrate_ID.append( BoundedIntText(min=0, disabled=disabled_flag,
                 description='substrate ID', layout=Layout(width=constWidth), ) )
-            self.end_substrate_ID.append( BoundedIntText(min=0, 
+            self.end_substrate_ID.append( BoundedIntText(min=0, disabled=disabled_flag,
                 layout=Layout(width='90px'), ) )
             start_end_substrate_ID.append( HBox([self.start_substrate_ID[idx], Label('-->'),self.end_substrate_ID[idx]]) )
 
-            self.condition_substrate_ID.append( BoundedIntText(min=0, 
+            self.condition_substrate_ID.append( BoundedIntText(min=0, disabled=disabled_flag,
                 description='cond substrate ID', layout=Layout(width=constWidth), ) )
-            self.condition1.append( BoundedFloatText(min=0, 
+            self.condition1.append( BoundedFloatText(min=0, disabled=disabled_flag,
                 description='condition1', layout=Layout(width=constWidth), ) )
-            self.rate1.append( HBox([BoundedFloatText(min=0, step=0.1,
+            self.rate1.append( HBox([BoundedFloatText(min=0, step=0.1,disabled=disabled_flag,
                 description='rate1', layout=Layout(width=constWidth), ), Label('1/min')],
                 layout=Layout(width=width_cell_params_units)) )
 
-            self.condition2.append( BoundedFloatText(min=0, 
+            self.condition2.append( BoundedFloatText(min=0, disabled=disabled_flag,
                 description='condition2', layout=Layout(width=constWidth), ) )
-            self.rate2.append( HBox([BoundedFloatText(min=0, step=0.1,
+            self.rate2.append( HBox([BoundedFloatText(min=0, step=0.1, disabled=disabled_flag,
                 description='rate2', layout=Layout(width=constWidth), ), Label('1/min')],
                 layout=Layout(width=width_cell_params_units)) )
 
@@ -842,7 +846,7 @@ class NanoTransform(object):
             self.condition2[idx].value = float(kids[7].text)
             self.rate2[idx].children[0].value = float(kids[8].text)
             idx += 1
-            
+
 
 class NanoTab(object):
 

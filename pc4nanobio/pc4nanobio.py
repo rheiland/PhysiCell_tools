@@ -4,6 +4,8 @@ from hublib.ui import RunCommand
 import xml.etree.ElementTree as ET  # https://docs.python.org/2/library/xml.etree.elementtree.html
 import os
 import glob
+import shutil
+from pathlib import Path
 from config import ConfigTab
 from cells import CellsTab
 from nano import NanoTab
@@ -34,40 +36,19 @@ def read_config_file_cb(_b):
     fill_gui_params(config_file)
 
 def write_config_file_cb(b):
-    print('writing config', b)
+#    print('writing config', b)
 
-    # TODO: verify template .xml file exists!
-    tree = ET.parse('nanobio_template.xml')
-    root = tree.getroot()
+    # Read in the default xml config file, just to get a valid 'root' to populate a new one
+    tree = ET.parse('data/nanobio_settings.xml')  # this file cannot be overwritten; part of tool distro
+    xml_root = tree.getroot()
 
-    # TODO: verify valid type (numeric) and range?
-    root.find(".//x_min").text = str(xmin.value)
-    root.find(".//x_max").text = str(xmax.value)
-    root.find(".//dx").text = str(xdelta.value)
-    root.find(".//y_min").text = str(ymin.value)
-    root.find(".//y_max").text = str(ymax.value)
-    root.find(".//dy").text = str(ydelta.value)
-    root.find(".//z_min").text = str(zmin.value)
-    root.find(".//z_max").text = str(zmax.value)
-    root.find(".//dz").text = str(zdelta.value)
-
-    root.find(".//max_time").text = str(tmax.value)
-
-    root.find(".//radius").text = str(tumor_radius.value)
-    root.find(".//omp_num_threads").text = str(omp_threads.value)
-        
-
-    #    user_details = ET.SubElement(root, "user_details")
-    #    ET.SubElement(user_details, "PhysiCell_settings", name="version").text = "devel-version"
-    #    ET.SubElement(user_details, "domain")
-    #    ET.SubElement(user_details, "xmin").text = "-100"
-
-    #    tree = ET.ElementTree(root)
-    #    tree.write(write_config_file.value)
-    #    tree.write("test.xml")
+    config_tab.gui2xml(xml_root)
+#    cells.gui2xml(xml_root)
+#    nanopart.gui2xml(xml_root)
 
     # TODO: verify can write to this filename
-    tree.write(write_config_file.value)
+    tree.write("data/" + write_config_file.value)
+    return
 
 
 def get_config_files():
@@ -81,23 +62,12 @@ def get_config_files():
     
 def default_config_file_cb(b):
 #    print('WD=',os.getcwd())
-    fill_gui_params('./config/nanobio_settings.xml')  # NOTE: hard-coded for now
+#    fill_gui_params('./config/nanobio_settings.xml')  # NOTE: hard-coded for now
+    fill_gui_params('./data/nanobio_settings.xml')  # NOTE: hard-coded for now
 
 
 def fill_gui_params(config_file):
-    global xml_root
-    # FIXME:  this will need modified to use new classes
-    # for example, 'xmin' is created in config.py.  Make it a class
-    # variable by putting "self." before the name.  Below, it
-    # will be referenced by the class instance "config_tab.xmin"
-    #
-    # The best approach would be to add fill_gui() methods to each class
-    # then the code below would be something like
-    # tree = ET.parse(config_file)
-    # root = tree.getroot()
-    # config_tab.fill_gui(root)
-    # cells.fill_gui(root)
-    # ...
+#    global xml_root
     
     tree = ET.parse(config_file)
     xml_root = tree.getroot()
@@ -105,18 +75,17 @@ def fill_gui_params(config_file):
     config_tab.fill_gui(xml_root)
     cells.fill_gui(xml_root)
     nanopart.fill_gui(xml_root)
-#    config_tab.xmin.value = float(root.find(".//x_min").text)
-    
-#    xmin.value = float(root.find(".//x_min").text)
-#    config_tab.xmax.value = float(root.find(".//x_max").text)
-
 
     return
 
 
 # This is used now for the RunCommand
 def run_sim_func(s):
-    s.run("bin/pc-nb data/nanobio_settings.xml")  # TODO: choose: nanoHUB vs local
+#    s.run("bin/pc-nb data/nanobio_settings.xml")  # TODO: choose: nanoHUB vs local
+    new_config_file = "data/" + write_config_file.value
+    if not Path(new_config_file).is_file():
+      shutil.copyfile("data/nanobio_settings.xml", new_config_file)
+    s.run("bin/pc-nb " + new_config_file)  
     # s.run("/Users/heiland/dev/run-nanobio/pc-nb nanobio_settings.xml")
    
         
@@ -137,10 +106,12 @@ read_config_button = widgets.Button(
     description='Read config file', style={'description_width': 'initial'},
     button_style='info', # 'success', 'info', 'warning', 'danger' or ''
     tooltip='Populate the GUI with info in your configuration file (in ~/local/share/pc4nanobio)',
+    disabled=True,
 )
 read_config_file = widgets.Text(
     value='my_nanobio_settings.xml',
     description='',
+    disabled=True,
 )
 read_config_button.on_click(read_config_file_cb) 
 read_config_row = widgets.HBox([default_config_button, read_config_button, read_config_file])
@@ -171,14 +142,14 @@ tabs.set_title(tab_idx, 'out:Substrate')
 
 read_config_row = widgets.HBox([read_config_button, read_config, default_config_button])
 
-tab_file = open("bin/tab_helper.png", "rb")
-image = tab_file.read()
-tab_helper = widgets.Image(
-    value=image,
-    format='png',
-    width=595,
-    height=55,
-)
+# tab_file = open("bin/tab_helper.png", "rb")
+# image = tab_file.read()
+# tab_helper = widgets.Image(
+#     value=image,
+#     format='png',
+#     width=595,
+#     height=55,
+# )
 
 #gui = widgets.VBox(children=[read_config_row, tab_helper, tabs, write_config_row, run_button.w])
 gui = widgets.VBox(children=[read_config_row, tabs, write_config_row, run_button.w])
