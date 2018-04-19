@@ -1,6 +1,6 @@
 # substrates  Tab
 
-import os
+import os, math
 from ipywidgets import Layout, Text, Checkbox, HBox, VBox, FloatText, Dropdown, interactive
 import matplotlib.pyplot as plt
 import matplotlib.colors as mplc
@@ -37,12 +37,14 @@ class SubstrateTab(object):
         self.field_cmap = Text(
             value='viridis',
             description='Colormap',
+            disabled=True,
             layout=Layout(width=constWidth),
         )
         self.field_cmap.observe(self.plot_substrate)
 
         toggle_field_cmap_fixed = Checkbox(
             description='Fix',
+            disabled=True,
             layout=Layout(width=constWidth2),
         )
         field_cmap_fixed_min = FloatText(
@@ -97,15 +99,16 @@ class SubstrateTab(object):
         #     im = ax.imshow(f.reshape(100,100), interpolation='nearest', cmap=cmap, extent=[0,20, 0,20])
         #     ax.grid(False)
 
-        grid2D = M[0, :].reshape(100,100)
+        N = int(math.sqrt(len(M[0,:])))
+        grid2D = M[0, :].reshape(N,N)
         xvec = grid2D[0, :]
         num_contours = 30
-        my_plot = plt.contourf(xvec, xvec, M[self.field_index, :].reshape(100,100), num_contours, cmap=self.field_cmap.value)
+        my_plot = plt.contourf(xvec, xvec, M[self.field_index, :].reshape(N,N), num_contours, cmap=self.field_cmap.value)
         plt.colorbar(my_plot)
         axes_min = 0
         axes_max = 2000
-        plt.xlim(axes_min, axes_max)
-        plt.ylim(axes_min, axes_max)
+        # plt.xlim(axes_min, axes_max)
+        # plt.ylim(axes_min, axes_max)
 
 
 # mcds_play = widgets.Play(
