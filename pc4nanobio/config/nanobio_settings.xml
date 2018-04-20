@@ -1,0 +1,586 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/*
+###############################################################################
+# If you use PhysiCell in your project, please cite PhysiCell and the version #
+# number, such as below:                                                      #
+#                                                                             #
+# We implemented and solved the model using PhysiCell (Version 1.3.0) [1].    #
+#                                                                             #
+# [1] A Ghaffarizadeh, R Heiland, SH Friedman, SM Mumenthaler, and P Macklin, #
+#     PhysiCell: an Open Source Physics-Based Cell Simulator for Multicellu-  #
+#     lar Systems, PLoS Comput. Biol. 14(2): e1005991, 2018                   #
+#     DOI: 10.1371/journal.pcbi.1005991                                       #
+#                                                                             #
+# Because PhysiCell extensively uses BioFVM, we suggest you also cite BioFVM  #
+#     as below:                                                               #
+#                                                                             #
+# We implemented and solved the model using PhysiCell (Version 1.3.0) [1],    #
+# with BioFVM [2] to solve the transport equations.                           #
+#                                                                             #
+# [1] A Ghaffarizadeh, R Heiland, SH Friedman, SM Mumenthaler, and P Macklin, #
+#     PhysiCell: an Open Source Physics-Based Cell Simulator for Multicellu-  #
+#     lar Systems, PLoS Comput. Biol. 14(2): e1005991, 2018                   #
+#     DOI: 10.1371/journal.pcbi.1005991                                       #
+#                                                                             #
+# [2] A Ghaffarizadeh, SH Friedman, and P Macklin, BioFVM: an efficient para- #
+#    llelized diffusive transport solver for 3-D biological simulations,      #
+#    Bioinformatics 32(8): 1256-8, 2016. DOI: 10.1093/bioinformatics/btv730   #
+#                                                                             #
+###############################################################################
+#                                                                             #
+# BSD 3-Clause License (see https://opensource.org/licenses/BSD-3-Clause)     #
+#                                                                             #
+# Copyright (c) 2015-2018, Paul Macklin and the PhysiCell Project             #
+# All rights reserved.                                                        #
+#                                                                             #
+# Redistribution and use in source and binary forms, with or without          #
+# modification, are permitted provided that the following conditions are met: #
+#                                                                             #
+# 1. Redistributions of source code must retain the above copyright notice,   #
+# this list of conditions and the following disclaimer.                       #
+#                                                                             #
+# 2. Redistributions in binary form must reproduce the above copyright        #
+# notice, this list of conditions and the following disclaimer in the         #
+# documentation and/or other materials provided with the distribution.        #
+#                                                                             #
+# 3. Neither the name of the copyright holder nor the names of its            #
+# contributors may be used to endorse or promote products derived from this   #
+# software without specific prior written permission.                         #
+#                                                                             #
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" #
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE   #
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE  #
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE   #
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR         #
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF        #
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS    #
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN     #
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)     #
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE  #
+# POSSIBILITY OF SUCH DAMAGE.                                                 #
+#                                                                             #
+###############################################################################
+*/
+--> 
+
+<PhysiCell_settings version="devel-version">
+	<domain> <!-- done in nanobio.cpp --> 
+		<x_min units="micron">0</x_min>
+		<x_max units="micron">2000</x_max>
+		<y_min units="micron">0</y_min>
+		<y_max units="micron">2000</y_max>
+		<z_min units="micron">-10.0</z_min>
+		<z_max units="micron">10.0</z_max>
+		<dx units="micron">20</dx>
+		<dy units="micron">20</dy>
+		<dz units="micron">20</dz>
+	</domain>
+	
+	<overall> <!-- done --> 
+		<max_time units="min">30240</max_time> <!-- 21 days * 24 h * 60 min -->
+		<time_units>min</time_units>
+		<space_units>micron</space_units>
+	</overall>
+	
+	<parallel> <!-- done --> 
+		<omp_num_threads>8</omp_num_threads>
+	</parallel> 
+	
+	<save> <!-- done --> 
+		<folder>.</folder> <!-- use . for root --> 
+
+		<full_data>
+			<interval units="min">120</interval>
+			<enable>true</enable>
+		</full_data>
+		
+		<SVG>
+			<interval units="min">60</interval>
+			<enable>true</enable>
+		</SVG>
+		
+		<legacy_data>
+			<enable>false</enable>
+		</legacy_data>
+	</save>
+	
+	<visualization>
+		<custom_data_index>4</custom_data_index>
+		<blue_value>0</blue_value>
+		<yellow_value>1</yellow_value>
+	</visualization>
+	
+	<substrates> <!-- done in nanobio.cpp  --> 
+		<variable name="oxygen" units="mmHg" ID="0">
+			<physical_parameter_set>
+				<diffusion_coefficient units="micron^2/min">100000.000000</diffusion_coefficient>
+				<decay_rate units="1/min">.1</decay_rate> <!-- 1 for cells  --> 
+			</physical_parameter_set>
+		</variable>
+		<variable name="glucose" units="dimensionless" ID="1">
+			<physical_parameter_set>
+				<diffusion_coefficient units="micron^2/min">30000</diffusion_coefficient>
+				<decay_rate units="1/min">0.00003</decay_rate> <!-- 0.3 for glycolytic cells. 0.003 for normal tumor  --> 
+			</physical_parameter_set>
+		</variable>
+		<variable name="H+ ions" units="pH" ID="2">
+			<physical_parameter_set>
+				<diffusion_coefficient units="micron^2/min">65000</diffusion_coefficient>
+				<decay_rate units="1/min">0.0</decay_rate>
+			</physical_parameter_set>
+		</variable>
+		<variable name="ECM" units="dimensionless" ID="3">
+			<physical_parameter_set>
+				<diffusion_coefficient units="micron^2/min">0</diffusion_coefficient>
+				<decay_rate units="1/min">0.0</decay_rate>
+			</physical_parameter_set>
+		</variable>
+		<variable name="NP1" units="dimensionless" ID="4">
+			<!-- overwrite below -->
+		</variable>
+		<variable name="NP2" units="dimensionless" ID="5">
+			<!-- overwrite below --> 
+			<physical_parameter_set>
+				<diffusion_coefficient units="micron^2/min">0</diffusion_coefficient>
+				<decay_rate units="1/min">0.0</decay_rate>
+			</physical_parameter_set>			
+		</variable>
+		
+		<calculate_gradients>true</calculate_gradients>
+	</substrates>
+	
+<!-- tissue conditions --> 
+	<tissue_conditions> <!-- done in nanobio.cpp --> 
+		<substrates>
+			<substrate ID="0" enabled="true">38</substrate>
+			<substrate ID="1" enabled="true">1</substrate>
+			<substrate ID="2" enabled="true">7.25</substrate>
+			<substrate ID="3" enabled="false">1.0</substrate>
+			<substrate ID="4" enabled="false">0</substrate>
+			<substrate ID="5" enabled="false">0</substrate>
+		</substrates>
+	</tissue_conditions> 
+	
+	<treatment> <!-- done --> 
+		<substrates> 
+			<substrate ID="4">
+				<activation_time units="min">0</activation_time>
+				<dose units="dimensionless">1</dose>
+				<blood_tissue_transfer_rate /> <!-- don't worry about me --> 
+				<clearance_rate units="1/min">0.00001</clearance_rate>
+			</substrate>
+		</substrates> 
+	</treatment>
+	
+<!-- initial tumor properties --> 
+
+	<tumor> <!-- done --> 
+		<radius units="micron">100</radius>
+	</tumor>
+	
+<!-- we're going to use "basic phenotype" that are custom to nanobio for now -->
+<!-- untreated cell properties --> 
+
+	<cell_definitions> <!-- done and read! --> 
+		<cell_definition ID="0" name="untreated cancer">
+			<basic_phenotype ID="0" name="live">
+				<cycle>
+					<max_birth_rate units="1/min">0.00072</max_birth_rate> <!-- 0.00072 -->
+					<parameters>
+						<o2_proliferation_saturation units="mmHg">38</o2_proliferation_saturation>
+						<o2_proliferation_threshold unts="mmHg">5</o2_proliferation_threshold>
+						<o2_reference units="mmHg">38</o2_reference>
+
+						<glucose_proliferation_reference units="dimensionless">1</glucose_proliferation_reference>
+						<glucose_proliferation_saturation units="dimensionless">1</glucose_proliferation_saturation>
+						<glucose_proliferation_threshold units="dimensionless">0</glucose_proliferation_threshold>
+					</parameters>
+				</cycle>
+				
+				<necrosis>
+					<max_necrosis_rate units="1/min">0.0027777777777778</max_necrosis_rate>
+					<parameters>
+						<o2_necrosis_threshold units="mmHg">5</o2_necrosis_threshold>
+						<o2_necrosis_max units="mmHg">2.5</o2_necrosis_max> 
+					</parameters>
+				</necrosis>
+				
+				<apoptosis>
+					<apoptosis_rate units="1/min">5.316666666666667e-5</apoptosis_rate>
+				</apoptosis>
+				
+				<metabolism>
+					<parameters>
+					<!-- these must sum to 1.0 -->
+						<relative_aerobic_effects>1.0</relative_aerobic_effects>
+						<relative_glycolytic_effects>0.0</relative_glycolytic_effects>
+					</parameters>
+				</metabolism>
+				
+				<motility>
+					<is_motile>false</is_motile>
+					<bias>0.25</bias>
+					<gradient_substrate_index>0</gradient_substrate_index>
+						<!-- which substrate do we use for chemotaxis? -->
+					<negative_taxis>false</negative_taxis>
+						<!-- true if we go along -grad(substrate[index]) --> 
+					<speed units="micron/min">1.1</speed>
+					<persistence_time units="min">10.0</persistence_time>
+				</motility>
+				
+				<mechanics>
+					<max_relative_adhesion_distance>1.5</max_relative_adhesion_distance>
+					<adhesion_strength>0.4</adhesion_strength>
+					<repulsion_strength>10</repulsion_strength>
+				</mechanics>
+				
+				<hypoxia>
+					<o2_hypoxic_threshold units="mmHg">15</o2_hypoxic_threshold>
+					<o2_hypoxic_response units="mmHg">8</o2_hypoxic_response>
+					<o2_hypoxic_saturation units="mmHg">4</o2_hypoxic_saturation>
+				</hypoxia>
+				
+				<secretion>
+					<substrate name="oxygen" units="mmHg" ID="0">
+						<uptake_rate units="1/min">10</uptake_rate>
+						<secretion_rate units="1/min">0</secretion_rate>
+						<saturation_density units="">0.0</saturation_density>
+					</substrate>
+					<substrate name="glucose" units="dimensionless" ID="1">
+						<uptake_rate units="1/min">0.3</uptake_rate> <!-- 0.3 for glycolytic, 0.003 for normal tumor --> 
+						<secretion_rate units="1/min">0</secretion_rate>
+						<saturation_density units="">0.0</saturation_density>
+					</substrate>
+					<substrate name="H+ ions" units="dimensionless" ID="2">
+						<uptake_rate units="1/min">0</uptake_rate>
+						<secretion_rate units="1/min">0</secretion_rate>
+						<saturation_density units="">1.0</saturation_density>
+					</substrate>
+					<substrate name="ECM" units="dimensionless" ID="3">
+						<uptake_rate units="1/min">0</uptake_rate>
+						<secretion_rate units="1/min">0</secretion_rate>
+						<saturation_density units="">0</saturation_density>
+					</substrate>
+					<substrate name="NP1" units="dimensionless" ID="4">
+						<uptake_rate units="1/min">0</uptake_rate>
+						<secretion_rate units="1/min">0</secretion_rate>
+						<saturation_density units="">0</saturation_density>
+					</substrate>			
+					<substrate name="NP2" units="dimensionless" ID="5">
+						<uptake_rate units="1/min">0</uptake_rate>
+						<secretion_rate units="1/min">0</secretion_rate>
+						<saturation_density units="">0</saturation_density>
+					</substrate>			
+				</secretion>
+				
+			</basic_phenotype>
+		</cell_definition>
+	</cell_definitions>	 
+	
+<!-- done --> 
+	<nanoparticle_definitions>
+		<nanoparticle name="Preform NP (spherical)" units="dimensionless" ID="0" substrate_ID="4">
+			<pharmacokinetics> <!-- done --> 
+				<diffusion_coefficient units="micron^2/min">6</diffusion_coefficient> <!-- done --> 
+				<survival_lifetime units="min">60000</survival_lifetime> <!-- done --> 
+				
+				<ECM_binding_rate units="1/min">0.0</ECM_binding_rate> <!-- done -->
+				<ECM_unbinding_rate units="1/min">0.0</ECM_unbinding_rate> <!-- done -->
+				<ECM_saturation_concentration units="dimensionless">0.1</ECM_saturation_concentration> <!-- done -->
+			</pharmacokinetics>
+			
+			<pharmacodynamics>
+				<effect_model>0</effect_model>
+					<!-- 0: simple (conc), 1: intermediate (AUC), 2: details (activation and deactivation) -->
+				<EC_50>0.5</EC_50>
+				<Hill_power>2</Hill_power>
+				<mechanistic_response_rate units="1/min">1.0</mechanistic_response_rate>
+				<mechanistic_deactivation_rate units="1/min">0.0</mechanistic_deactivation_rate>
+
+				<!-- cell-level -->
+				<enable_active_influx>true</enable_active_influx>
+				<relative_max_internal_concentration units="dimensionless">2.0</relative_max_internal_concentration>
+					<!-- R = max internal concentration / reference external concentration --> 
+				<internalization_rate units="1/min">0.0058</internalization_rate> <!-- 2 hours to reach half max --> 
+					<!-- ln(2) / time to reach half max internal concentration --> 
+					<!-- measured in a reference external concentration --> 
+				<reference_external_concentration units="dimensionless">1</reference_external_concentration>
+				
+				<enabled_responses>
+					<cycle>false</cycle>
+					<apoptosis>false</apoptosis>
+					<metabolism>false</metabolism>
+					<motility>false</motility>
+					<mechanics>false</mechanics>
+					<secretion>false</secretion>
+				</enabled_responses>
+				
+				<max_response>
+					<basic_phenotype ID="0" name="NP response">
+						<cycle>
+							<max_birth_rate units="1/min">0.00018</max_birth_rate>  
+							<parameters>
+								<o2_proliferation_saturation units="mmHg">38</o2_proliferation_saturation>
+								<o2_proliferation_threshold unts="mmHg">5</o2_proliferation_threshold>
+								<o2_reference units="mmHg">38</o2_reference>
+
+								<glucose_proliferation_reference units="dimensionless">1</glucose_proliferation_reference>
+								<glucose_proliferation_saturation units="dimensionless">1</glucose_proliferation_saturation>
+								<glucose_proliferation_threshold units="dimensionless">0</glucose_proliferation_threshold>
+							</parameters>
+						</cycle>
+						
+						<necrosis>
+							<max_necrosis_rate units="1/min">0.0027777777777778</max_necrosis_rate>
+							<parameters>
+								<o2_necrosis_threshold units="mmHg">5</o2_necrosis_threshold>
+								<o2_necrosis_max units="mmHg">2.5</o2_necrosis_max> 
+							</parameters>
+						</necrosis>
+						
+						<apoptosis>
+							<apoptosis_rate units="1/min">0.001</apoptosis_rate>
+						</apoptosis>
+						
+						<metabolism>
+							<parameters>
+							<!-- these must sum to 1.0 -->
+								<relative_aerobic_effects>1.0</relative_aerobic_effects>
+								<relative_glycolytic_effects>0.0</relative_glycolytic_effects>
+							</parameters>
+						</metabolism>
+						
+						<motility>
+							<is_motile>true</is_motile>
+							<bias>0.25</bias>
+							<gradient_substrate_index>0</gradient_substrate_index>
+								<!-- which substrate do we use for chemotaxis? -->
+							<negative_taxis>false</negative_taxis>
+								<!-- true if we go along -grad(substrate[index]) --> 
+							<speed units="micron/min">1.1</speed>
+							<persistence_time units="min">10.0</persistence_time>
+						</motility>
+						
+						<mechanics>
+							<max_relative_adhesion_distance>1.5</max_relative_adhesion_distance>
+							<adhesion_strength>0.4</adhesion_strength>
+							<repulsion_strength>10</repulsion_strength>
+						</mechanics>
+						
+						<hypoxia> <!-- not enabled yet --> 
+							<o2_hypoxic_threshold units="mmHg">15</o2_hypoxic_threshold>
+							<o2_hypoxic_response units="mmHg">8</o2_hypoxic_response>
+							<o2_hypoxic_saturation units="mmHg">4</o2_hypoxic_saturation>
+						</hypoxia>
+						
+						<secretion>
+							<substrate name="oxygen" units="mmHg" ID="0">
+								<uptake_rate units="1/min">10</uptake_rate>
+								<secretion_rate units="1/min">0</secretion_rate>
+								<saturation_density units="">0.0</saturation_density>
+							</substrate>
+							<substrate name="glucose" units="dimensionless" ID="1">
+								<uptake_rate units="1/min">0.003</uptake_rate> <!-- 0.3 for glycolytic, 0.003 for normal tumor --> 
+								<secretion_rate units="1/min">0</secretion_rate>
+								<saturation_density units="">0.0</saturation_density>
+							</substrate>
+							<substrate name="H+ ions" units="dimensionless" ID="2">
+								<uptake_rate units="1/min">0</uptake_rate>
+								<secretion_rate units="1/min">0</secretion_rate>
+								<saturation_density units="">1.0</saturation_density>
+							</substrate>
+							<substrate name="ECM" units="dimensionless" ID="3">
+								<uptake_rate units="1/min">0</uptake_rate>
+								<secretion_rate units="1/min">0</secretion_rate>
+								<saturation_density units="">0</saturation_density>
+							</substrate>
+							<substrate name="NP1" units="dimensionless" ID="4">
+								<uptake_rate units="1/min">0</uptake_rate>
+								<secretion_rate units="1/min">0</secretion_rate>
+								<saturation_density units="">0</saturation_density>
+							</substrate>			
+							<substrate name="NP2" units="dimensionless" ID="5">
+								<uptake_rate units="1/min">0</uptake_rate>
+								<secretion_rate units="1/min">0</secretion_rate>
+								<saturation_density units="">0</saturation_density>
+							</substrate>			
+						</secretion>
+						
+					</basic_phenotype> 
+				</max_response>
+			</pharmacodynamics>
+		</nanoparticle>
+		
+		<nanoparticle name="Reconfigured NP (rod)" units="dimensionless" ID="1" substrate_ID="5">
+			<pharmacokinetics> <!-- done --> 
+				<diffusion_coefficient units="micron^2/min">6</diffusion_coefficient>
+				<survival_lifetime units="min">60000</survival_lifetime>
+				<ECM_binding_rate units="1/min">0.0</ECM_binding_rate>
+				<ECM_unbinding_rate units="1/min">0.0</ECM_unbinding_rate>
+				<ECM_saturation_concentration units="dimensionless">0.1</ECM_saturation_concentration>
+			</pharmacokinetics>
+			
+			<pharmacodynamics>  
+				<effect_model>0</effect_model>
+					<!-- 0: simple (conc), 1: intermediate (AUC), 2: details (activation and deactivation) -->
+				<EC_50>0.5</EC_50>
+				<Hill_power>2.0</Hill_power>
+				<mechanistic_response_rate units="1/min">1.0</mechanistic_response_rate>
+				<mechanistic_deactivation_rate units="1/min">0.0</mechanistic_deactivation_rate>
+				
+				<!-- cell-level -->
+				<enable_active_influx>true</enable_active_influx>
+				<relative_max_internal_concentration units="dimensionless">3.0</relative_max_internal_concentration>
+					<!-- R = max internal concentration / reference external concentration --> 
+				<internalization_rate units="1/min">0.0058</internalization_rate> <!-- 2 hours to reach half max --> 
+					<!-- ln(2) / time to reach half max internal concentration --> 
+					<!-- measured in a reference external concentration --> 
+				<reference_external_concentration units="dimensionless">1</reference_external_concentration>
+				
+				<enabled_responses>
+					<cycle>true</cycle>
+					<apoptosis>true</apoptosis>
+					<metabolism>false</metabolism>
+					<motility>false</motility>
+					<mechanics>false</mechanics>
+					<secretion>false</secretion>
+				</enabled_responses>
+				
+				<max_response>
+					<basic_phenotype ID="0" name="NP response">
+						<cycle>
+							<max_birth_rate units="1/min">0.00018</max_birth_rate>  
+							<parameters>
+								<o2_proliferation_saturation units="mmHg">38</o2_proliferation_saturation>
+								<o2_proliferation_threshold unts="mmHg">5</o2_proliferation_threshold>
+								<o2_reference units="mmHg">38</o2_reference>
+
+								<glucose_proliferation_reference units="dimensionless">1</glucose_proliferation_reference>
+								<glucose_proliferation_saturation units="dimensionless">1</glucose_proliferation_saturation>
+								<glucose_proliferation_threshold units="dimensionless">0</glucose_proliferation_threshold>
+							</parameters>
+						</cycle>
+						
+						<necrosis>
+							<max_necrosis_rate units="1/min">0.0027777777777778</max_necrosis_rate>
+							<parameters>
+								<o2_necrosis_threshold units="mmHg">5</o2_necrosis_threshold>
+								<o2_necrosis_max units="mmHg">2.5</o2_necrosis_max> 
+							</parameters>
+						</necrosis>
+						
+						<apoptosis>
+							<apoptosis_rate units="1/min">0.0005</apoptosis_rate>
+						</apoptosis>
+						
+						<metabolism>
+							<parameters>
+							<!-- these must sum to 1.0 -->
+								<relative_aerobic_effects>1.0</relative_aerobic_effects>
+								<relative_glycolytic_effects>0.0</relative_glycolytic_effects>
+							</parameters>
+						</metabolism>
+						
+						<motility>
+							<is_motile>true</is_motile>
+							<bias>0.25</bias>
+							<gradient_substrate_index>0</gradient_substrate_index>
+								<!-- which substrate do we use for chemotaxis? -->
+							<negative_taxis>false</negative_taxis>
+								<!-- true if we go along -grad(substrate[index]) --> 
+							<speed units="micron/min">1.1</speed>
+							<persistence_time units="min">10.0</persistence_time>
+						</motility>
+						
+						<mechanics>
+							<max_relative_adhesion_distance>1.5</max_relative_adhesion_distance>
+							<adhesion_strength>0.4</adhesion_strength>
+							<repulsion_strength>10</repulsion_strength>
+						</mechanics>
+						
+						<hypoxia> <!-- not enabled yet --> 
+							<o2_hypoxic_threshold units="mmHg">15</o2_hypoxic_threshold>
+							<o2_hypoxic_response units="mmHg">8</o2_hypoxic_response>
+							<o2_hypoxic_saturation units="mmHg">4</o2_hypoxic_saturation>
+						</hypoxia>
+						
+						<secretion>
+							<substrate name="oxygen" units="mmHg" ID="0">
+								<uptake_rate units="1/min">10</uptake_rate>
+								<secretion_rate units="1/min">0</secretion_rate>
+								<saturation_density units="">0.0</saturation_density>
+							</substrate>
+							<substrate name="glucose" units="dimensionless" ID="1">
+								<uptake_rate units="1/min">0.003</uptake_rate> <!-- 0.3 for glycolytic, 0.003 for normal tumor --> 
+								<secretion_rate units="1/min">0</secretion_rate>
+								<saturation_density units="">0.0</saturation_density>
+							</substrate>
+							<substrate name="H+ ions" units="dimensionless" ID="2">
+								<uptake_rate units="1/min">0</uptake_rate>
+								<secretion_rate units="1/min">0</secretion_rate>
+								<saturation_density units="">1.0</saturation_density>
+							</substrate>
+							<substrate name="ECM" units="dimensionless" ID="3">
+								<uptake_rate units="1/min">0</uptake_rate>
+								<secretion_rate units="1/min">0</secretion_rate>
+								<saturation_density units="">0</saturation_density>
+							</substrate>
+							<substrate name="NP1" units="dimensionless" ID="4">
+								<uptake_rate units="1/min">0</uptake_rate>
+								<secretion_rate units="1/min">0</secretion_rate>
+								<saturation_density units="">0</saturation_density>
+							</substrate>			
+							<substrate name="NP2" units="dimensionless" ID="5">
+								<uptake_rate units="1/min">0</uptake_rate>
+								<secretion_rate units="1/min">0</secretion_rate>
+								<saturation_density units="">0</saturation_density>
+							</substrate>			
+						</secretion>						
+						
+					</basic_phenotype> 
+				</max_response>
+			</pharmacodynamics>
+				
+		</nanoparticle>
+
+		
+		<!-- still in progress --> 
+		<transformations> <!-- not done --> 
+			<transformation>
+				<start_NP_ID>0</start_NP_ID>
+				<end_NP_ID>1</end_NP_ID>
+				
+				<start_substrate_ID>4</start_substrate_ID>
+				<end_substrate_ID>5</end_substrate_ID>
+				
+				<condition_substrate_ID>0</condition_substrate_ID>
+				
+				<condition1>10</condition1>
+				<rate1 units="1/min">1</rate1>
+
+				<condition2>15</condition2>
+				<rate2 units="1/min">0</rate2>
+			</transformation>
+			
+			<transformation>
+				<start_NP_ID>1</start_NP_ID>
+				<end_NP_ID>0</end_NP_ID>
+				
+				<start_substrate_ID>5</start_substrate_ID>
+				<end_substrate_ID>4</end_substrate_ID>
+				
+				<condition_substrate_ID>0</condition_substrate_ID>
+				
+				<condition1>20</condition1>
+				<rate1 units="1/min">0</rate1>
+
+				<condition2>25</condition2>
+				<rate2 units="1/min">0</rate2>
+			</transformation>			
+		
+		</transformations>
+		
+	</nanoparticle_definitions>
+
+</PhysiCell_settings>
