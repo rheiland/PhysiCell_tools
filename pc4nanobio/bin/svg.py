@@ -11,28 +11,42 @@ import numpy as np
 
 class SVGTab(object):
 
+#    myplot = None
+
     def __init__(self):
         tab_height = '500px'
         tab_layout = Layout(width='800px',   # border='2px solid black',
                             height=tab_height, overflow_y='scroll')
 
-        svg_plot = interactive(self.plot_svg, SVG=(0, 500), continuous_update=False)
+        max_frames = 10
+        self.svg_plot = interactive(self.plot_svg, frame=(0, max_frames), continuous_update=False)
         svg_plot_size = '500px'
-        svg_plot.layout.width = svg_plot_size
-        svg_plot.layout.height = svg_plot_size
+        self.svg_plot.layout.width = svg_plot_size
+        self.svg_plot.layout.height = svg_plot_size
         self.use_defaults = True
         self.show_nucleus = 0
         self.scale_radius = 1.0
         self.axes_min = 0.0
-        self.axes_max = 2000
-        self.tab = HBox([svg_plot], layout=tab_layout)
+        self.axes_max = 2000   # hmm, this can change (TODO?)
+#        self.tab = HBox([svg_plot], layout=tab_layout)
+        self.max_frames = BoundedIntText(
+            min=0, max=99999, value=max_frames,
+            description='Max',
+            layout=Layout(width='160px'),
+        )
+        self.max_frames.observe(self.update_max_frames)
+        row1 = HBox([Label('(select slider: drag or left/right arrows)'),self.max_frames])
+        self.tab = VBox([row1,self.svg_plot], layout=tab_layout)
 
-        self.output_dir_str = os.getenv('RESULTSDIR') + "/pc4nanobio/"
+ #       self.output_dir_str = os.getenv('RESULTSDIR') + "/pc4nanobio/"
 
-    def plot_svg(self, SVG):
+    def update_max_frames(self,_b):
+        self.svg_plot.children[0].max = self.max_frames.value
+
+    def plot_svg(self, frame):
         # global current_idx, axes_max
         # print('plot_svg: SVG=', SVG)
-        fname = "snapshot%08d.svg" % SVG
+        fname = "snapshot%08d.svg" % frame
 #        fullname = self.output_dir_str + fname
         fullname = fname  # do this for nanoHUB! (data appears in root dir?)
         if not os.path.isfile(fullname):

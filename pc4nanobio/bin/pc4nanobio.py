@@ -10,6 +10,7 @@ from config import ConfigTab
 from cells import CellsTab
 from nano import NanoTab
 from svg import SVGTab
+from mydata import DataTab
 from substrates import SubstrateTab
 
 #join_our_list = "(Join/ask questions at https://groups.google.com/forum/#!forum/physicell-users)\n"
@@ -24,9 +25,13 @@ tab_layout = widgets.Layout(width='800px',   # border='2px solid black',
 # create the tabs, but don't display yet
 config_tab = ConfigTab()
 cells = CellsTab()
-nanopart = NanoTab()
+
+tree = ET.parse('data/nanobio_settings.xml')  # this file cannot be overwritten; part of tool distro
+xml_root = tree.getroot()
+nanopart = NanoTab(xml_root)
 svg = SVGTab()
 sub = SubstrateTab()
+mydata = DataTab()
 
 
 def read_config_file_cb(_b):
@@ -42,11 +47,11 @@ def write_config_file_cb(b):
     tree = ET.parse('data/nanobio_settings.xml')  # this file cannot be overwritten; part of tool distro
     xml_root = tree.getroot()
 
-    config_tab.gui2xml(xml_root)
-#    cells.gui2xml(xml_root)
-#    nanopart.gui2xml(xml_root)
+    config_tab.fill_xml(xml_root)
+    cells.fill_xml(xml_root)
+    nanopart.fill_xml(xml_root)
 
-    # TODO: verify can write to this filename
+    # TODO?: verify can write to this filename
     tree.write("data/" + write_config_file.value)
     return
 
@@ -92,7 +97,7 @@ def run_sim_func(s):
 run_button = RunCommand(start_func=run_sim_func)  # optionally: , done_func=read_data
 
 default_config_button = widgets.Button(
-    description='Use defaults', style={'description_width': 'initial'},
+    description='Reset defaults', style={'description_width': 'initial'},
     button_style='info',  # 'success', 'info', 'warning', 'danger' or ''
     tooltip='Populate the GUI with default parameters',
 )
@@ -131,14 +136,16 @@ write_config_row = widgets.HBox([write_config_button, write_config_file])
 
 
 #----------------------
-tabs = widgets.Tab(children=[config_tab.tab, cells.tab, nanopart.tab, svg.tab, sub.tab], layout=tab_layout)  
+#tabs = widgets.Tab(children=[config_tab.tab, cells.tab, nanopart.tab, svg.tab, sub.tab, mydata.tab], layout=tab_layout)  
+tabs = widgets.Tab(children=[config_tab.tab, cells.tab, nanopart.tab, svg.tab, sub.tab,], layout=tab_layout)  
 tab_idx = 0
 tabs.set_title(tab_idx, 'Config Basics'); tab_idx += 1
-tabs.set_title(tab_idx, 'Cells'); tab_idx += 1
+tabs.set_title(tab_idx, 'Cell Properties'); tab_idx += 1
 tabs.set_title(tab_idx, 'Nanoparticles'); tab_idx += 1
 # tabs.set_title(tab_idx, 'XML'); tab_idx += 1
-tabs.set_title(tab_idx, 'out:SVG'); tab_idx += 1
-tabs.set_title(tab_idx, 'out:Substrate')
+tabs.set_title(tab_idx, 'Cell Plots'); tab_idx += 1
+tabs.set_title(tab_idx, 'Substrate Plots'); tab_idx += 1
+#tabs.set_title(tab_idx, 'Data'); 
 
 read_config_row = widgets.HBox([read_config_button, read_config, default_config_button])
 
@@ -153,3 +160,5 @@ read_config_row = widgets.HBox([read_config_button, read_config, default_config_
 
 #gui = widgets.VBox(children=[read_config_row, tab_helper, tabs, write_config_row, run_button.w])
 gui = widgets.VBox(children=[read_config_row, tabs, write_config_row, run_button.w])
+default_config_file_cb(None)
+

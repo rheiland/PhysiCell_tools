@@ -1,7 +1,7 @@
 # substrates  Tab
 
 import os, math
-from ipywidgets import Layout, Text, Checkbox, HBox, VBox, FloatText, Dropdown, interactive
+from ipywidgets import Layout, Text, Checkbox, BoundedIntText, HBox, VBox, FloatText, Dropdown, interactive
 import matplotlib.pyplot as plt
 import matplotlib.colors as mplc
 import scipy.io
@@ -21,10 +21,18 @@ class SubstrateTab(object):
         tab_layout = Layout(width='800px',   # border='2px solid black',
                             height=tab_height, overflow_y='scroll')
 
-        self.mcds_plot = interactive(self.plot_substrate, fid=(0, 200), continuous_update=False)  
+        max_frames = 10
+        self.mcds_plot = interactive(self.plot_substrate, frame=(0, max_frames), continuous_update=False)  
         svg_plot_size = '500px'
         self.mcds_plot.layout.width = svg_plot_size
         self.mcds_plot.layout.height = svg_plot_size
+
+        self.max_frames = BoundedIntText(
+            min=0, max=99999, value=max_frames,
+            description='Max frames',
+            layout=Layout(width='160px'),
+        )
+        self.max_frames.observe(self.update_max_frames)
 
         self.mcds_field = Dropdown(
             options={'oxygen': 0, 'glucose': 1, 'H+ ions': 2, 'ECM': 3, 'NP1': 4, 'NP2': 5},
@@ -62,9 +70,11 @@ class SubstrateTab(object):
         field_cmap_row2 = HBox([self.field_cmap, toggle_field_cmap_fixed])
         field_cmap_row3 = HBox([field_cmap_fixed_min, field_cmap_fixed_max])
         # mcds_tab = widgets.VBox([mcds_dir, mcds_plot, mcds_play], layout=tab_layout)
-        mcds_params = VBox([self.mcds_field, field_cmap_row2, field_cmap_row3])  # mcds_dir
+        mcds_params = VBox([self.mcds_field, field_cmap_row2, field_cmap_row3, self.max_frames])  # mcds_dir
         self.tab = HBox([mcds_params, self.mcds_plot], layout=tab_layout)
 
+    def update_max_frames(self,_b):
+        self.mcds_plot.children[0].max = self.max_frames.value
 
     def mcds_field_cb(self, b):
         #self.field_index = self.mcds_field.value
@@ -74,9 +84,9 @@ class SubstrateTab(object):
 #        print('field_index=',self.field_index)
         self.mcds_plot.update()
 
-    def plot_substrate(self, fid):
+    def plot_substrate(self, frame):
         # global current_idx, axes_max, gFileId, field_index
-        fname = "output%08d_microenvironment0.mat" % fid
+        fname = "output%08d_microenvironment0.mat" % frame
         # fullname = output_dir_str + fname
         fullname = fname
         if not os.path.isfile(fullname):
