@@ -21,7 +21,7 @@ class SubstrateTab(object):
         tab_layout = Layout(width='800px',   # border='2px solid black',
                             height=tab_height, overflow_y='scroll')
 
-        max_frames = 10
+        max_frames = 253   # first time + 30240 / 120
         self.mcds_plot = interactive(self.plot_substrate, frame=(0, max_frames), continuous_update=False)  
         svg_plot_size = '500px'
         self.mcds_plot.layout.width = svg_plot_size

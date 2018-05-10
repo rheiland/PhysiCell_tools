@@ -12,7 +12,7 @@ class NanoParticle(object):
         self.xml_uep = xml_uep
 
         tab_height = '500px'
-        width_cell_params_units = '250px'
+        width_cell_params_units = '270px'
 
         np_tab_layout = Layout(width='800px',  # border='2px solid black',
                                height='350px', overflow_y='scroll')
@@ -35,8 +35,8 @@ class NanoParticle(object):
         disabled_flag = False
 
         self.diffusion_coefficient = HBox([BoundedFloatText(min=0, step=0.1,
-           description='diffusion coefficient', layout=Layout(width=constWidth), ), Label('µm^2/min')],
-           layout=Layout(width=width_cell_params_units))
+           description='diffusion coefficient', layout=Layout(width=constWidth), ), Label('micron^2/min')],
+           layout=Layout(width=width_cell_params_units))   # option-m  µm
         self.survival_lifetime = HBox([BoundedFloatText(min=0, max=1.e6, step=0.1,
            description='survival lifetime', layout=Layout(width=constWidth), ), Label('min')],
            layout=Layout(width=width_cell_params_units))
@@ -185,14 +185,14 @@ class NanoParticle(object):
         #-------------------------------
 #        label_motility = Label('Motility:')
         self.motility_response = Checkbox(
-            description='Motility',
-            layout=Layout(width=constWidth),
+            description='Motility', disabled=True, 
+            layout=Layout(width='200px'),
         )
         self.motility_response.observe(self.motility_response_cb)
 
         self.is_motile = Checkbox(
-            description='is_motile',
-            layout=Layout(width='190px'),
+            description='motile', disabled=True, 
+            layout=Layout(width='200px'),
         )
         self.is_motile.observe(self.is_motile_cb)
 
@@ -202,10 +202,10 @@ class NanoParticle(object):
         ), ], layout=Layout(width=width_cell_params_units))
 
 #        speed_units = HTMLMath(value=r"$\frac{\mu M^2}{min}$")
-        speed_units = Label('µm/min')   # use "option m" (Mac, for micro symbol)
+        speed_units = Label('micron/min')   # use "option m" µ (Mac, for micro symbol)
         self.speed = HBox([BoundedFloatText(min=0, step=0.1,
            description='speed', layout=Layout(width=constWidth), ), speed_units], 
-           layout=Layout(width=width_cell_params_units))
+           layout=Layout(width='290px'))  # width_cell_params_units = '270px'
         self.persistence_time = HBox([BoundedFloatText(min=0, step=0.1,
            description='persistence time', layout=Layout(width=constWidth), ), Label('min')], 
            layout=Layout(width=width_cell_params_units))
@@ -217,7 +217,8 @@ class NanoParticle(object):
             layout=Layout(width='200px'),
             )
         self.negative_taxis = RadioButtons(
-            options={u"\u2207" : 0, "-" +  u"\u2207" : 1},
+#            options={u"\u2207" : 0, "-" +  u"\u2207" : 1},
+            options={"grad" : 0, "-grad" : 1},   # {u"\u2207" : 0, "-" +  u"\u2207" : 1},
             value=0,
             description='',
             disabled=False
@@ -321,7 +322,7 @@ class NanoParticle(object):
         metabolism_box = VBox([self.metabolism_response,
             HBox([self.metab_aero,self.metab_glyco]),
             ], layout=box_layout)
-        motility_box = VBox([ HBox([self.motility_response, self.is_motile, self.gradient_substrate_index, self.negative_taxis,]),
+        motility_box = VBox([ HBox([self.motility_response, self.is_motile, self.gradient_substrate_index, self.negative_taxis]),
             HBox([ self.bias, self.speed, self.persistence_time]),
             ], layout=box_layout)
         mechanics_box = VBox([self.mechanics_response,
@@ -756,7 +757,7 @@ class NanoTab(object):
 #        uep = xml_root.find('.//cell_definition')  # find unique entry point into XML 
         self.sphere.fill_gui()
         self.rod.fill_gui()
-#        self.xform.fill_gui(xml_root)
+        self.xform.fill_gui(xml_root)
 
     def fill_xml(self, xml_root):
         self.sphere.fill_xml(xml_root)

@@ -19,7 +19,7 @@ constWidth = '180px'
 
 tab_height = '500px'
 
-tab_layout = widgets.Layout(width='800px',   # border='2px solid black',
+tab_layout = widgets.Layout(width='850px',   # border='2px solid black',
                             height=tab_height, overflow_y='scroll',)
 
 # create the tabs, but don't display yet

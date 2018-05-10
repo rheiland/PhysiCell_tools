@@ -9,20 +9,21 @@ class ConfigTab(object):
     def __init__(self):
         
 #        micron_units = HTMLMath(value=r"$\mu M$")
-        micron_units = Label('µm')   # use "option m" (Mac, for micro symbol)
+        micron_units = Label('micron')   # use "option m" (Mac, for micro symbol)
 #        micron_units = Label('microns')   # use "option m" (Mac, for micro symbol)
 
         constWidth = '180px'
         # tab_height = '400px'
         tab_height = '500px'
-        tab_layout = Layout(width='800px',   # border='2px solid black',
-                            height=tab_height, overflow_y='scroll',)
+#        tab_layout = Layout(width='900px',   # border='2px solid black',
+#        tab_layout = Layout(width='850px',   # border='2px solid black',
+#                            height=tab_height, overflow_y='scroll',)
 #        np_tab_layout = Layout(width='800px',  # border='2px solid black',
 #                               height='350px', overflow_y='scroll',)
 
         # my_domain = [0,0,-10, 2000,2000,10, 20,20,20]  # [x,y,zmin,  x,y,zmax, x,y,zdelta]
 #        label_domain = Label('Domain ($\mu M$):')
-        label_domain = Label('Domain (µm):')
+        label_domain = Label('Domain (micron):')
         stepsize = 10
         self.xmin = FloatText(step=stepsize,
             # description='$X_{min}$',
@@ -54,22 +55,22 @@ class ConfigTab(object):
             min=0.,
             max=100000000,
             step=stepsize,
-            description='Time',
+            description='Max Time',
             layout=Layout(width=constWidth),
         )
         self.xdelta = BoundedFloatText(
             min=1.,
-            description='∆x',  # Mac: opt-j for delta
+            description='dx',   # '∆x',  # Mac: opt-j for delta
             layout=Layout(width=constWidth),
         )
         self.ydelta = BoundedFloatText(
             min=1.,
-            description='∆y',
+            description='dy',
             layout=Layout(width=constWidth),
         )
         self.zdelta = BoundedFloatText(
             min=1.,
-            description='∆z',
+            description='dz',
             layout=Layout(width=constWidth),
         )
         """
@@ -206,7 +207,8 @@ class ConfigTab(object):
         self.diffusion_coef = []
         self.decay_rate = []
 
-        width_cell_params_units = '250px'
+        width_cell_params_units = '510px'
+        width_cell_params_units = '380px'
         disable_substrates_flag = False
             
         self.substrate.append(  HBox([BoundedFloatText(min=0, step=0.1, disabled=True, value=38,
@@ -228,17 +230,21 @@ class ConfigTab(object):
         #    description='NP2: ', layout=Layout(width=constWidth), ), ], 
         #    layout=Layout(width=width_cell_params_units)) )
 
+        width_cell_params_units = '450px'
+        width_cell_params_units = '400px'
 #        for idx in range(4):
         self.diffusion_coef.append( HBox([BoundedFloatText(min=0, max=999999, step=10.0,
-               description='diffusion coef', disabled=disable_substrates_flag, layout=Layout(width=constWidth), ), Label('µm^2/min')], 
+               description='diffusion coef', disabled=disable_substrates_flag, layout=Layout(width=constWidth), ), Label('micron^2/min')], 
                layout=Layout(width=width_cell_params_units)) )
         self.diffusion_coef.append( HBox([BoundedFloatText(min=0, max=999999, step=10.0,
-               description='diffusion coef', disabled=disable_substrates_flag, layout=Layout(width=constWidth), ), Label('µm^2/min')], 
+               description='diffusion coef', disabled=disable_substrates_flag, layout=Layout(width=constWidth), ), Label('micron^2/min')], 
                layout=Layout(width=width_cell_params_units)) )
         self.diffusion_coef.append( HBox([BoundedFloatText(min=0, max=999999, step=10.0,
-               description='diffusion coef', disabled=disable_substrates_flag, layout=Layout(width=constWidth), ), Label('µm^2/min')], 
+               description='diffusion coef', disabled=disable_substrates_flag, layout=Layout(width=constWidth), ), Label('micron^2/min')], 
                layout=Layout(width=width_cell_params_units)) )
 
+        width_cell_params_units = '400px'
+        width_cell_params_units = '380px'
         self.decay_rate.append(  HBox([BoundedFloatText(min=0, step=0.01,
                description='decay rate', disabled=disable_substrates_flag, layout=Layout(width=constWidth), ), Label('1/min')], 
                layout=Layout(width=width_cell_params_units)) )

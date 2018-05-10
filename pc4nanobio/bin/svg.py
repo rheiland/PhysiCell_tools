@@ -14,17 +14,24 @@ class SVGTab(object):
 #    myplot = None
 
     def __init__(self):
-        tab_height = '500px'
+        tab_height = '520px'
         tab_layout = Layout(width='800px',   # border='2px solid black',
                             height=tab_height, overflow_y='scroll')
 
-        max_frames = 10
+        max_frames = 505  # first time + 30240 / 60
         self.svg_plot = interactive(self.plot_svg, frame=(0, max_frames), continuous_update=False)
         svg_plot_size = '500px'
         self.svg_plot.layout.width = svg_plot_size
         self.svg_plot.layout.height = svg_plot_size
         self.use_defaults = True
-        self.show_nucleus = 0
+
+        self.show_nucleus = 1  # 0->False, 1->True in Checkbox!
+        self.show_nucleus_checkbox= Checkbox(
+            description='nucleus', value=True, disabled=False,
+            layout=Layout(width='250px'),
+        )
+        self.show_nucleus_checkbox.observe(self.show_nucleus_cb)
+
         self.scale_radius = 1.0
         self.axes_min = 0.0
         self.axes_max = 2000   # hmm, this can change (TODO?)
@@ -35,10 +42,18 @@ class SVGTab(object):
             layout=Layout(width='160px'),
         )
         self.max_frames.observe(self.update_max_frames)
-        row1 = HBox([Label('(select slider: drag or left/right arrows)'),self.max_frames])
+        row1 = HBox([Label('(select slider: drag or left/right arrows)'), 
+            self.max_frames, self.show_nucleus_checkbox])
+#            self.max_frames, self.show_nucleus_checkbox], layout=Layout(width='500px'))
         self.tab = VBox([row1,self.svg_plot], layout=tab_layout)
 
  #       self.output_dir_str = os.getenv('RESULTSDIR') + "/pc4nanobio/"
+
+    def show_nucleus_cb(self, b):
+        if (self.show_nucleus_checkbox.value):
+            self.show_nucleus = 1
+        else:
+            self.show_nucleus = 0
 
     def update_max_frames(self,_b):
         self.svg_plot.children[0].max = self.max_frames.value
@@ -139,6 +154,7 @@ class SVGTab(object):
 
                 # For .svg files with cells that *have* a nucleus, there will be a 2nd
                 if (self.show_nucleus == 0):
+                #if (not self.show_nucleus):
                     break
 
             num_cells += 1

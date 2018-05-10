@@ -7,7 +7,8 @@ class CellsTab(object):
  
     def __init__(self): 
         constWidth = '180px'
-        width_cell_params_units = '240px'
+        #width_cell_params_units = '240px'
+        width_cell_params_units = '270px'
         
         self.cell_name = Text(
             value='untreated cancer',
@@ -74,7 +75,7 @@ class CellsTab(object):
         #-------------------------------
         label_motility = Label('Motility:')
         self.is_motile = Checkbox(
-            description='is_motile',
+            description='motile', disabled=True,
             layout=Layout(width=constWidth),
         )
         self.bias = HBox([BoundedFloatText(max=1, step=0.01,
@@ -82,7 +83,7 @@ class CellsTab(object):
             layout=Layout(width=constWidth),
         ), ], layout=Layout(width=width_cell_params_units))
 #        speed_units = HTMLMath(value=r"$\frac{\mu M^2}{min}$")
-        speed_units = Label('µm/min')   # use "option m" (Mac, for micro symbol)
+        speed_units = Label('micron/min')   # use "option m" (Mac, for micro symbol)
         self.speed = HBox([BoundedFloatText(min=0, step=0.1,
            description='speed', layout=Layout(width=constWidth), ), speed_units], 
            layout=Layout(width=width_cell_params_units))
@@ -92,15 +93,15 @@ class CellsTab(object):
 
         # constWidt = '180px'
         self.gradient_substrate_index = BoundedIntText(
-            min=0,  value=0, disabled = False, 
+            min=0,  value=0, disabled = True, 
             description='substrate index', style={'description_width': 'initial'},
             layout=Layout(width='160px'),
             )
         self.negative_taxis = RadioButtons(
-            options={u"\u2207" : 0, "-" +  u"\u2207" : 1},
+            options={"grad" : 0, "-grad" : 1},   # {u"\u2207" : 0, "-" +  u"\u2207" : 1},
             value=0,
+            disabled=True,
             description='',
-            disabled=False
         )
         
             
