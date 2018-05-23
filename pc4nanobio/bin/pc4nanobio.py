@@ -19,7 +19,7 @@ constWidth = '180px'
 
 tab_height = '500px'
 
-tab_layout = widgets.Layout(width='850px',   # border='2px solid black',
+tab_layout = widgets.Layout(width='950px',   # border='2px solid black',
                             height=tab_height, overflow_y='scroll',)
 
 # create the tabs, but don't display yet
@@ -132,8 +132,54 @@ write_config_file = widgets.Text(
     value='my_nanobio_settings.xml',
     description='',
 )
-write_config_row = widgets.HBox([write_config_button, write_config_file])
 
+# Put only the output *directories* (located one level up) in the Dropdown widget
+alldirs = ['dummy1','dummy2']  # for testing on nanoHUB Jupyter Notebooks, not app
+basedir = 'dummy2'
+parent_dir = '..'
+
+outdir = os.getenv('RESULTSDIR')  # =None if not defined
+if outdir:
+    last_slash_pos = outdir.rfind('/')  # =-1 if not found
+    if last_slash_pos > 0:
+        parent_dir = outdir[:last_slash_pos]
+        alldirs = [d for d in os.listdir(parent_dir) if (os.path.isdir(os.path.join(parent_dir,d)) and d[0]!='.')]
+        alldirs.sort()
+        basedir = os.path.basename(outdir)
+
+def output_dir_cb(b):
+#    print(os.path.join(parent_dir, select_output_dir.value))
+    svg.output_dir = os.path.join(parent_dir, select_output_dir.value, 'pc4nanobio')
+    last_svg = 'snapshot00000000.svg'
+    for file in sorted(os.listdir(svg.output_dir)):
+        if file.startswith("snapshot") and file.endswith(".svg"):
+            last_svg = file
+    svg.max_frames.value = int(last_svg[8:-4])  # assumes naming scheme: "snapshot%08d.svg"
+    svg.svg_plot.update()
+
+    sub.output_dir = os.path.join(parent_dir, select_output_dir.value, 'pc4nanobio')
+    last_xml = 'output00000000.xml'
+    for file in sorted(os.listdir(sub.output_dir)):
+        if file.startswith("output") and file.endswith(".xml"):
+            last_xml = file
+    sub.max_frames.value = int(last_xml[6:-4])  # assumes naming scheme: "output%08d.xml"
+    sub.mcds_plot.update()
+
+select_output_dir = widgets.Dropdown(
+    options=alldirs,
+    value= basedir,
+    disabled = True,
+)
+select_output_dir.observe(output_dir_cb)
+
+# select_output_dir = widgets.Dropdown(
+#     options=['foo1','foo2'],
+#     value= 'foo2',
+#     disabled = True,
+# )
+
+# write_config_row = widgets.HBox([write_config_button, write_config_file])
+write_config_row = widgets.HBox([write_config_button, write_config_file, select_output_dir])
 
 #----------------------
 #tabs = widgets.Tab(children=[config_tab.tab, cells.tab, nanopart.tab, svg.tab, sub.tab, mydata.tab], layout=tab_layout)  
@@ -146,6 +192,18 @@ tabs.set_title(tab_idx, 'Nanoparticles'); tab_idx += 1
 tabs.set_title(tab_idx, 'Cell Plots'); tab_idx += 1
 tabs.set_title(tab_idx, 'Substrate Plots'); tab_idx += 1
 #tabs.set_title(tab_idx, 'Data'); 
+
+def tab_cb(b):
+    global select_output_dir
+#    print(tabs.selected_index)
+    if (tabs.selected_index > 2):
+        select_output_dir.disabled = False
+    #     write_config_row = widgets.HBox([write_config_button, write_config_file, select_output_dir])
+    else:
+        select_output_dir.disabled = True
+    #     write_config_row = widgets.HBox([write_config_button, write_config_file])
+
+tabs.observe(tab_cb)
 
 read_config_row = widgets.HBox([read_config_button, read_config, default_config_button])
 

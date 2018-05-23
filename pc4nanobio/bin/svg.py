@@ -1,7 +1,7 @@
 # SVG  Tab
 
 import os
-from ipywidgets import Layout, Label, Text, Checkbox, Button, HBox, VBox, \
+from ipywidgets import Layout, Label, Text, Checkbox, Button, HBox, VBox, Box, \
     FloatText, BoundedIntText, BoundedFloatText, HTMLMath, Dropdown, interactive
 from collections import deque
 import xml.etree.ElementTree as ET
@@ -18,6 +18,8 @@ class SVGTab(object):
         tab_layout = Layout(width='800px',   # border='2px solid black',
                             height=tab_height, overflow_y='scroll')
 
+        self.output_dir = '.'
+
         max_frames = 505  # first time + 30240 / 60
         self.svg_plot = interactive(self.plot_svg, frame=(0, max_frames), continuous_update=False)
         svg_plot_size = '500px'
@@ -25,35 +27,71 @@ class SVGTab(object):
         self.svg_plot.layout.height = svg_plot_size
         self.use_defaults = True
 
-        self.show_nucleus = 1  # 0->False, 1->True in Checkbox!
-        self.show_nucleus_checkbox= Checkbox(
-            description='nucleus', value=True, disabled=False,
-            layout=Layout(width='250px'),
-        )
-        self.show_nucleus_checkbox.observe(self.show_nucleus_cb)
-
+        self.show_nucleus = 0  # 0->False, 1->True in Checkbox!
+        self.show_edge = 1  # 0->False, 1->True in Checkbox!
         self.scale_radius = 1.0
         self.axes_min = 0.0
         self.axes_max = 2000   # hmm, this can change (TODO?)
 #        self.tab = HBox([svg_plot], layout=tab_layout)
+
         self.max_frames = BoundedIntText(
             min=0, max=99999, value=max_frames,
             description='Max',
-            layout=Layout(width='160px'),
+            layout=Layout(flex='1 1 auto', width='auto'),  #Layout(width='160px'),
         )
         self.max_frames.observe(self.update_max_frames)
-        row1 = HBox([Label('(select slider: drag or left/right arrows)'), 
-            self.max_frames, self.show_nucleus_checkbox])
+
+        self.show_nucleus_checkbox= Checkbox(
+            description='nucleus', value=False, disabled=False,
+            layout=Layout(flex='1 1 auto', width='auto'),  #Layout(width='160px'),
+        )
+        self.show_nucleus_checkbox.observe(self.show_nucleus_cb)
+
+        self.show_edge_checkbox= Checkbox(
+            description='edge', value=True, disabled=False,
+            layout=Layout(flex='1 1 auto', width='auto'),  #Layout(width='160px'),
+        )
+        self.show_edge_checkbox.observe(self.show_edge_cb)
+
+#        row1 = HBox([Label('(select slider: drag or left/right arrows)'), 
+#            self.max_frames, VBox([self.show_nucleus_checkbox, self.show_edge_checkbox])])
 #            self.max_frames, self.show_nucleus_checkbox], layout=Layout(width='500px'))
-        self.tab = VBox([row1,self.svg_plot], layout=tab_layout)
+
+#        self.tab = VBox([row1,self.svg_plot], layout=tab_layout)
+
+        items_auto = [Label('(select slider: drag or left/right arrows)'), 
+            self.max_frames, 
+            self.show_nucleus_checkbox,  
+            self.show_edge_checkbox, 
+         ]
+#row1 = HBox([Label('(select slider: drag or left/right arrows)'), 
+#            max_frames, show_nucleus_checkbox, show_edge_checkbox], 
+#            layout=Layout(width='800px'))
+        box_layout = Layout(display='flex',
+                    flex_flow='row',
+                    align_items='stretch',
+                    width='90%')
+        row1 = Box(children=items_auto, layout=box_layout)
+        self.tab = VBox([row1, self.svg_plot], layout=tab_layout)
 
  #       self.output_dir_str = os.getenv('RESULTSDIR') + "/pc4nanobio/"
 
     def show_nucleus_cb(self, b):
+        global current_frame
         if (self.show_nucleus_checkbox.value):
             self.show_nucleus = 1
         else:
             self.show_nucleus = 0
+#        self.plot_svg(self,current_frame)
+        self.svg_plot.update()
+
+    def show_edge_cb(self, b):
+        if (self.show_edge_checkbox.value):
+            self.show_edge = 1
+        else:
+            self.show_edge = 0
+        self.svg_plot.update()
+
 
     def update_max_frames(self,_b):
         self.svg_plot.children[0].max = self.max_frames.value
@@ -61,12 +99,17 @@ class SVGTab(object):
     def plot_svg(self, frame):
         # global current_idx, axes_max
         # print('plot_svg: SVG=', SVG)
+        global current_frame
+        current_frame = frame
         fname = "snapshot%08d.svg" % frame
+
 #        fullname = self.output_dir_str + fname
-        fullname = fname  # do this for nanoHUB! (data appears in root dir?)
-        if not os.path.isfile(fullname):
+#        fullname = fname  # do this for nanoHUB! (data appears in root dir?)
+        full_fname = os.path.join(self.output_dir, fname)
+        if not os.path.isfile(full_fname):
 #            print("File does not exist: ", fname)
-            print("File does not exist: ", fullname)
+#            print("File does not exist: ", full_fname)
+            print("No: ", full_fname)
             return
 
         xlist = deque()
@@ -76,7 +119,7 @@ class SVGTab(object):
 
         #  print('\n---- ' + fname + ':')
 #        tree = ET.parse(fname)
-        tree = ET.parse(fullname)
+        tree = ET.parse(full_fname)
         root = tree.getroot()
         #  print('--- root.tag ---')
         #  print(root.tag)
@@ -93,7 +136,8 @@ class SVGTab(object):
             if child.text and "Current time" in child.text:
                 svals = child.text.split()
                 # title_str = "(" + str(current_idx) + ") Current time: " + svals[2] + "d, " + svals[4] + "h, " + svals[7] + "m"
-                title_str = "Current time: " + svals[2] + "d, " + svals[4] + "h, " + svals[7] + "m"
+                # title_str = "Current time: " + svals[2] + "d, " + svals[4] + "h, " + svals[7] + "m"
+                title_str = svals[2] + "d, " + svals[4] + "h, " + svals[7] + "m"
 
             # print("width ",child.attrib['width'])
             # print('attrib=',child.attrib)
@@ -184,16 +228,37 @@ class SVGTab(object):
         #   plt.scatter(xvals,yvals, s=rvals*scale_radius, c=rgbs)
     
         fig = plt.figure(figsize=(6, 6))
-        ax = plt.axes([0, 0.05, 0.9, 0.9])  # left, bottom, width, height
+#        axx = plt.axes([0, 0.05, 0.9, 0.9])  # left, bottom, width, height
+#        axx = fig.gca()
+#        print('fig.dpi=',fig.dpi) # = 72
 
         #   im = ax.imshow(f.reshape(100,100), interpolation='nearest', cmap=cmap, extent=[0,20, 0,20])
         #   ax.xlim(axes_min,axes_max)
         #   ax.ylim(axes_min,axes_max)
-        ax.scatter(xvals,yvals, s=rvals*self.scale_radius, c=rgbs)
+
+        # convert radii to radii in pixels
+        ax2 = fig.gca()
+        N = len(xvals)
+        rr_pix = (ax2.transData.transform(np.vstack([rvals, rvals]).T) -
+                    ax2.transData.transform(np.vstack([np.zeros(N), np.zeros(N)]).T))
+        rpix, _ = rr_pix.T
+
+        markers_size = (144. * rpix / fig.dpi)**2   # = (2*rpix / fig.dpi * 72)**2
+#        markers_size = (2*rpix / fig.dpi * 72)**2
+        markers_size = markers_size/4000000.
+#        print('max=',markers_size.max())
+
+#        ax.scatter(xvals,yvals, s=rvals*self.scale_radius, c=rgbs)
+#        axx.scatter(xvals,yvals, s=markers_size, c=rgbs)
+        if (self.show_edge):
+            plt.scatter(xvals,yvals, s=markers_size, c=rgbs, edgecolor='black', linewidth='0.5')
+        else:
+            plt.scatter(xvals,yvals, s=markers_size, c=rgbs)
         plt.xlim(self.axes_min, self.axes_max)
         plt.ylim(self.axes_min, self.axes_max)
         #   ax.grid(False)
-        ax.set_title(title_str)
+#        axx.set_title(title_str)
+        plt.title(title_str)
 
 # video-style widget - perhaps for future use
 # svg_play = widgets.Play(
