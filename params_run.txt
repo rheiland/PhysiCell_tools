@@ -1,0 +1,16 @@
+# File to be used with params_run.py
+# Allows for changing parameters in .xml, running sim, and writing results to different folders.
+# <key> <value> pairs, where <key> is the first unique node name found in the xml.
+folder  run1 
+max_time 7200
+full_data.enable false
+uptake_rate 1.0
+#
+folder  run2 
+uptake_rate 5.0
+#
+folder  run3 
+uptake_rate 10.0
+#
+folder  run4 
+uptake_rate 15.0
