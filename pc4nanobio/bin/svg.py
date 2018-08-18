@@ -8,6 +8,9 @@ import xml.etree.ElementTree as ET
 import matplotlib.pyplot as plt
 import matplotlib.colors as mplc
 import numpy as np
+from hublib.ui import Download
+import zipfile
+import glob
 
 class SVGTab(object):
 
@@ -72,9 +75,21 @@ class SVGTab(object):
                     align_items='stretch',
                     width='90%')
         row1 = Box(children=items_auto, layout=box_layout)
-        self.tab = VBox([row1, self.svg_plot], layout=tab_layout)
+
+        self.download_button = Download('svg.zip', style='warning', icon='cloud-download', tooltip='Download results', cb=self.download_cb)
+        #self.download_button = Download('svg.zip', style='warning', icon='cloud-download', tooltip='Download results')
+
+#        self.tab = VBox([row1, self.svg_plot], layout=tab_layout)
+        self.tab = VBox([row1, self.svg_plot, self.download_button.w], layout=tab_layout)
 
  #       self.output_dir_str = os.getenv('RESULTSDIR') + "/pc4nanobio/"
+
+    def download_cb(self):
+        file_str = os.path.join(self.output_dir,'*.svg')
+#        print('zip up all ',file_str)
+        with zipfile.ZipFile('svg.zip','w') as myzip:
+            for f in glob.glob(file_str):
+                myzip.write(f)
 
     def show_nucleus_cb(self, b):
         global current_frame

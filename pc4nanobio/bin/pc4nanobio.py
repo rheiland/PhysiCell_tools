@@ -1,10 +1,11 @@
 # Rf  https://www.python.org/dev/peps/pep-0008/
 import ipywidgets as widgets
-from hublib.ui import RunCommand
+from hublib.ui import RunCommand, Submit
 import xml.etree.ElementTree as ET  # https://docs.python.org/2/library/xml.etree.elementtree.html
 import os
 import glob
 import shutil
+import datetime
 from pathlib import Path
 from config import ConfigTab
 from cells import CellsTab
@@ -90,11 +91,84 @@ def run_sim_func(s):
     new_config_file = "data/" + write_config_file.value
     if not Path(new_config_file).is_file():
       shutil.copyfile("data/nanobio_settings.xml", new_config_file)
-    s.run("bin/pc-nb " + new_config_file)  
+    s.run("bin/pc-nb " + new_config_file)
     # s.run("/Users/heiland/dev/run-nanobio/pc-nb nanobio_settings.xml")
-   
-        
+
+# https://hubzero.github.io/hublib/ui.html#runcommand
 run_button = RunCommand(start_func=run_sim_func)  # optionally: , done_func=read_data
+
+def submit_sim_func(s):
+#    s.run("bin/pc-nb data/nanobio_settings.xml")  # TODO: choose: nanoHUB vs local
+    new_config_file = "data/" + write_config_file.value
+    if not Path(new_config_file).is_file():
+      shutil.copyfile("data/nanobio_settings.xml", new_config_file)
+
+    #e.g.: submit -n 8 -w 1440 pc4nanobio-r46 nanobio_settings.xml
+    #s.run("bin/pc-nb " + new_config_file)
+
+    # get a unique (alphanumeric) run name
+    with open(new_config_file) as f: 
+        run_name = s.make_rname(f.read())
+
+    # run_name = datetime.datetime.today().strftime('%Y%m%d%H%M%S')
+#    s.run(run_name, "-n 8 -w 1440 pc4nanobio-r46 " + new_config_file)  
+    s.run(run_name, "-n 8 -w 1440 pc4nanobio-r77 " + new_config_file)  
+
+# Put only the output *directories* (located one level up) in the Dropdown widget
+alldirs = ['dummy1','dummy2']  # for testing on nanoHUB Jupyter Notebooks, not app
+basedir = 'dummy2'
+parent_dir = '..'
+
+# rwh: uncomment this block. Not sure what Martin had in mind when he commented out.
+outdir = os.getenv('RESULTSDIR')  # =None if not defined
+if outdir:
+    last_slash_pos = outdir.rfind('/')  # =-1 if not found
+    if last_slash_pos > 0:
+        parent_dir = outdir[:last_slash_pos]
+#        parent_dir += "/.submit_cache/pc4nanobio/"   # No, this is temporary dir for Submit??
+        if (os.path.exists(parent_dir)):
+            # NOTE: we only want to include subdirs if they contain either snapshot*.svg OR output*.mat
+            alldirs = [d for d in os.listdir(parent_dir) if (os.path.isdir(os.path.join(parent_dir,d)) and d[0]!='.')]
+            alldirs.sort()
+            #basedir = os.path.basename(outdir)
+            basedir = alldirs[0]  # would rather set = the latest created
+
+select_output_dir = widgets.Dropdown(
+    options = alldirs,
+    value = basedir,
+    disabled = True,
+)
+
+def submit_done_func(s, rdir):
+    print('DONE! results in', rdir)
+    # Email the user that their job has completed
+    os.system("submit  mail2self -s 'nanoHUB pc4nanobio' -t 'Your batch job completed.'")
+
+    # Try to update the dropdown widget of output dirs
+    # NOTE: we only want to include subdirs if they contain either snapshot*.svg OR output*.mat
+    outdir = os.getenv('RESULTSDIR')  # =None if not defined
+    if outdir:
+        last_slash_pos = outdir.rfind('/')  # =-1 if not found
+        if last_slash_pos > 0:
+            parent_dir = outdir[:last_slash_pos]
+            # parent_dir += "/.submit_cache/pc4nanobio/"   # No, this is temporary dir for Submit??
+            alldirs = [d for d in os.listdir(parent_dir) if (os.path.isdir(os.path.join(parent_dir,d)) and d[0]!='.')]
+            alldirs.sort()
+            #basedir = os.path.basename(outdir)
+            basedir = alldirs[0]  # would rather set = the latest created
+
+            select_output_dir.options = alldirs
+            select_output_dir.value = basedir
+
+    return
+ 
+
+# https://hubzero.github.io/hublib/ui.html#submit
+submit_button = Submit(label='Submit',
+                       tooltip='Submit batch run',
+                       start_func=submit_sim_func, 
+                       done_func=submit_done_func,  
+                       cachename='pc4nanobio')
 
 default_config_button = widgets.Button(
     description='Reset defaults', style={'description_width': 'initial'},
@@ -133,43 +207,37 @@ write_config_file = widgets.Text(
     description='',
 )
 
-# Put only the output *directories* (located one level up) in the Dropdown widget
-alldirs = ['dummy1','dummy2']  # for testing on nanoHUB Jupyter Notebooks, not app
-basedir = 'dummy2'
-parent_dir = '..'
 
-outdir = os.getenv('RESULTSDIR')  # =None if not defined
-if outdir:
-    last_slash_pos = outdir.rfind('/')  # =-1 if not found
-    if last_slash_pos > 0:
-        parent_dir = outdir[:last_slash_pos]
-        alldirs = [d for d in os.listdir(parent_dir) if (os.path.isdir(os.path.join(parent_dir,d)) and d[0]!='.')]
-        alldirs.sort()
-        basedir = os.path.basename(outdir)
 
 def output_dir_cb(b):
 #    print(os.path.join(parent_dir, select_output_dir.value))
+
+    # Cell Plots
     svg.output_dir = os.path.join(parent_dir, select_output_dir.value, 'pc4nanobio')
-    last_svg = 'snapshot00000000.svg'
-    for file in sorted(os.listdir(svg.output_dir)):
-        if file.startswith("snapshot") and file.endswith(".svg"):
-            last_svg = file
-    svg.max_frames.value = int(last_svg[8:-4])  # assumes naming scheme: "snapshot%08d.svg"
-    svg.svg_plot.update()
+    # don't want /pc4nanobio subdir if dealing with .submit_cache
+    # svg.output_dir = os.path.join(parent_dir, select_output_dir.value)
 
-    sub.output_dir = os.path.join(parent_dir, select_output_dir.value, 'pc4nanobio')
-    last_xml = 'output00000000.xml'
-    for file in sorted(os.listdir(sub.output_dir)):
-        if file.startswith("output") and file.endswith(".xml"):
-            last_xml = file
-    sub.max_frames.value = int(last_xml[6:-4])  # assumes naming scheme: "output%08d.xml"
-    sub.mcds_plot.update()
+    if (os.path.exists(svg.output_dir)):
+        last_svg = 'snapshot00000000.svg'
+        for file in sorted(os.listdir(svg.output_dir)):
+            if file.startswith("snapshot") and file.endswith(".svg"):
+                last_svg = file
+        svg.max_frames.value = int(last_svg[8:-4])  # assumes naming scheme: "snapshot%08d.svg"
+        svg.svg_plot.update()
 
-select_output_dir = widgets.Dropdown(
-    options=alldirs,
-    value= basedir,
-    disabled = True,
-)
+        #----------------
+        # Substrate Plots
+        sub.output_dir = os.path.join(parent_dir, select_output_dir.value, 'pc4nanobio')
+
+        # BOGUS! don't want /pc4nanobio subdir if dealing with .submit_cache
+        # sub.output_dir = os.path.join(parent_dir, select_output_dir.value)
+        last_xml = 'output00000000.xml'
+        for file in sorted(os.listdir(sub.output_dir)):
+            if file.startswith("output") and file.endswith(".xml"):
+                last_xml = file
+        sub.max_frames.value = int(last_xml[6:-4])  # assumes naming scheme: "output%08d.xml"
+        sub.mcds_plot.update()
+
 select_output_dir.observe(output_dir_cb)
 
 # select_output_dir = widgets.Dropdown(
@@ -217,6 +285,7 @@ read_config_row = widgets.HBox([read_config_button, read_config, default_config_
 # )
 
 #gui = widgets.VBox(children=[read_config_row, tab_helper, tabs, write_config_row, run_button.w])
-gui = widgets.VBox(children=[read_config_row, tabs, write_config_row, run_button.w])
+#gui = widgets.VBox(children=[read_config_row, tabs, write_config_row, run_button.w])
+gui = widgets.VBox(children=[read_config_row, tabs, write_config_row, run_button.w, submit_button.w])
 default_config_file_cb(None)
 

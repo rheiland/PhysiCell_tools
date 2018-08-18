@@ -75,7 +75,7 @@ class CellsTab(object):
         #-------------------------------
         label_motility = Label('Motility:')
         self.is_motile = Checkbox(
-            description='motile', disabled=True,
+            description='motile', disabled=False,
             layout=Layout(width=constWidth),
         )
         self.bias = HBox([BoundedFloatText(max=1, step=0.01,
@@ -93,7 +93,7 @@ class CellsTab(object):
 
         # constWidt = '180px'
         self.gradient_substrate_index = BoundedIntText(
-            min=0,  value=0, disabled = True, 
+            min=0,  value=0, disabled = False, 
             description='substrate index', style={'description_width': 'initial'},
             layout=Layout(width='160px'),
             )
