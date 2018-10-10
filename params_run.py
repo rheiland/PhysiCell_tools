@@ -8,9 +8,9 @@ import subprocess
 import os
 import sys
 
-#print(len(sys.argv))
-if (len(sys.argv) < 2):
-  usage_str = "Usage: %s <params.txt>" % (sys.argv[0])
+print(len(sys.argv))
+if (len(sys.argv) < 3):
+  usage_str = "Usage: %s <pgm> <params.txt>" % (sys.argv[0])
   print(usage_str)
 #  print("e.g.,")
 #  eg_str = "%s 0 1000 10 20 jpg" % (sys.argv[0])
@@ -19,7 +19,8 @@ if (len(sys.argv) < 2):
 else:
 #   start_idx = int(sys.argv[1])
 #   stop_idx = int(sys.argv[2])
-   params_file = sys.argv[1]
+   pgm = sys.argv[1]
+   params_file = sys.argv[2]
 
 
 xml_file_in = 'config/PhysiCell_settings.xml'
@@ -46,7 +47,8 @@ with open(params_file) as f:
                 print('---write (previous) config file and start its sim')
                 tree.write(xml_file_out)
 #                subprocess.call(["clones2", xml_file_out]) # maybe Popen instead of call (for background)
-                cmd = "clones2 " +  xml_file_out + " &"
+                #cmd = "clones2 " +  xml_file_out + " &"
+                cmd =  pgm + " " + xml_file_out + " &"
                 os.system(cmd)
 
             xml_file_out = val + '/config.xml'  # copy config file into the output dir
@@ -73,7 +75,8 @@ cwd = os.getcwd()
 #subprocess.call(["clones2", "config/tmp.xml"])
 #subprocess.call(["clones2", xml_file_out])
 
-cmd = "clones2 " +  xml_file_out + " &"
+#cmd = "clones2 " +  xml_file_out + " &"
+cmd =  pgm + " " +  xml_file_out + " &"
 os.system(cmd)
 
 print(output_dirs)
