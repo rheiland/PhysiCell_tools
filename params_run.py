@@ -1,4 +1,8 @@
-#
+# This script provides simple parameter sweep functionality. The script creates
+# a new folder (subdirectory) for each set of parameters, makes changes to a default 
+# configuration (.xml) file using specified parameter values (in an accompanying .txt file),
+# copies the new config file into the new folder, then
+# runs the simulation (in the background) which writes results into the new folder.
 # 
 
 import xml.etree.ElementTree as ET
@@ -12,13 +16,9 @@ print(len(sys.argv))
 if (len(sys.argv) < 3):
   usage_str = "Usage: %s <pgm> <params.txt>" % (sys.argv[0])
   print(usage_str)
-#  print("e.g.,")
-#  eg_str = "%s 0 1000 10 20 jpg" % (sys.argv[0])
-#  print(eg_str)
+  print("e.g.:  python params_run.py cancer_biorobots params_run.txt")
   exit(1)
 else:
-#   start_idx = int(sys.argv[1])
-#   stop_idx = int(sys.argv[2])
    pgm = sys.argv[1]
    params_file = sys.argv[2]
 
@@ -46,8 +46,6 @@ with open(params_file) as f:
                 # write the config file to the previous folder (output) dir and start a simulation
                 print('---write (previous) config file and start its sim')
                 tree.write(xml_file_out)
-#                subprocess.call(["clones2", xml_file_out]) # maybe Popen instead of call (for background)
-                #cmd = "clones2 " +  xml_file_out + " &"
                 cmd =  pgm + " " + xml_file_out + " &"
                 os.system(cmd)
 
@@ -70,12 +68,7 @@ with open(params_file) as f:
 
 tree.write(xml_file_out)
 
-cwd = os.getcwd()
-#call(cwd + '/clones2 ' + cwd + '/config/tmp.xml')
-#subprocess.call(["clones2", "config/tmp.xml"])
-#subprocess.call(["clones2", xml_file_out])
-
-#cmd = "clones2 " +  xml_file_out + " &"
+#cwd = os.getcwd()
 cmd =  pgm + " " +  xml_file_out + " &"
 os.system(cmd)
 
