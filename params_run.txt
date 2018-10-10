@@ -4,13 +4,8 @@
 folder  run1 
 max_time 7200
 full_data.enable false
-uptake_rate 1.0
+worker_fraction 0.01
+max_relative_cell_adhesion_distance 1.25
 #
 folder  run2 
-uptake_rate 5.0
-#
-folder  run3 
-uptake_rate 10.0
-#
-folder  run4 
-uptake_rate 15.0
+max_relative_cell_adhesion_distance 2.5
