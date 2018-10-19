@@ -1,6 +1,16 @@
 #
 # cell_tracks.py - plot 2-D cell tracks associated with PhysiCell .svg files
 #
+# Usage:
+#  python cell_tracks.py <max # of .svg frames>
+# 
+# Dependencies include matplotlib and numpy. We recommend installing the Anaconda Python3 distribution.
+#
+# Examples (run from directory containing the .svg files):
+#  python cell_tracks.py 100
+#
+# Author: Randy Heiland
+#
 import sys
 import xml.etree.ElementTree as ET
 import numpy as np
@@ -9,9 +19,9 @@ import matplotlib.pyplot as plt
 import math
 
 
-print(len(sys.argv))
+#print(len(sys.argv))
 if (len(sys.argv) < 2):
-  usage_str = "Usage: %s max" % (sys.argv[0])
+  usage_str = "Usage: %s <max # svg frames>" % (sys.argv[0])
   print(usage_str)
   print("e.g.,")
   eg_str = "%s 42" % (sys.argv[0])
@@ -123,4 +133,6 @@ for key in d.keys():
 #    print(" d[",key,"].size=", d[key].size)
 #    print( d[key])
 
+title_str = " max # SVG frames: " + str(maxCount)
+plt.title(title_str)
 plt.show()
