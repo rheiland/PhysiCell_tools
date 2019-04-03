@@ -43,6 +43,7 @@ xctrs = m[10,:]
 yctrs = m[11,:]
 zctrs = m[12,:]
 
+
 #        self.fig = plt.figure(figsize=(13.2,4))  # TODO: need function of domain sizes
 lfig = 5
 scale_factor = 40.0
@@ -123,11 +124,21 @@ y_down = np.take(yctrs,ids_down)
 scale_factor = 40.0
 scale_factor = 35.0
 glyphsize = 160
-glyphsize = 120
+glyphsize = 100
 up_color = 'green'
 up_color = 'tan'
 down_color = 'tan'
-plt.scatter(x_up,y_up, marker=(3,1,0),s=glyphsize, c=up_color)
-plt.scatter(x_down,y_down, marker=(3,1,180),s=glyphsize, c=down_color)
+#plt.scatter(x_up,y_up, marker=(3,1,0),s=glyphsize, c=up_color)
+#plt.scatter(x_down,y_down, marker=(3,1,180),s=glyphsize, c=down_color)
+
+
+live = m[0,:]
+live_up = np.take(live,ids_up)
+live_down = np.take(live,ids_down)
+up_plot = plt.scatter(x_up,y_up, marker=(3,1,0),s=glyphsize, c=live_up)
+plt.scatter(x_down,y_down, marker=(3,1,180),s=glyphsize, c=live_down)
+#plt.set_aspect('equal')
+plt.title("live cells")
+plt.colorbar(up_plot)
 
 plt.show()
