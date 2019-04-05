@@ -39,7 +39,7 @@ except:
 print(len(sys.argv))
 if (len(sys.argv) < 2):
   print("Usage: " + sys.argv[0] + " [glyphsize]")
-    print("e.g.  glyphsize=10")
+  print("e.g.  glyphsize=10")
   sys.exit(0)
 else:
   glyphsize = int(sys.argv[1])
