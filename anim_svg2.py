@@ -1,17 +1,15 @@
 #
-# anim_svg.py:  render/animate PhysiCell .svg files, using left/right arrows on keyboard
+# anim_svg2.py:  render/animate PhysiCell .svg files, non-stop (cycle through all .svg files in a directory)
 #
 # Usage:
-#  python anim_svg.py <show_nucleus start_index axes_min axes_max>
+#  python anim_svg2.py <show_nucleus start_index axes_min axes_max>
 #    i.e., the arguments <...> are optional and have defaults.
 # 
-# Keyboard arrows: right/left arrows will single step forward/backward; up/down will increment/decrement step size
-#
 # Dependencies include matplotlib and numpy. We recommend installing the Anaconda Python3 distribution.
 #
 # Examples (run from directory containing the .svg files):
-#  python anim_svg.py 
-#  python anim_svg.py 0 5 700 1300 
+#  python anim_svg2.py 
+#  python anim_svg2.py 0 5 700 1300 
 #
 # Author: Randy Heiland (except for the circles() function)
 #
