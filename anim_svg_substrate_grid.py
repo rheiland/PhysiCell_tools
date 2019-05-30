@@ -63,8 +63,8 @@ vmin = 0.0
 vmax = 1050
 fix_cmap = 0
 
-scale_radius = 1.0
-if (len(sys.argv) == 13):
+#scale_radius = 1.0
+if (len(sys.argv) == 12):
   use_defaults = False
   kdx = 1
   show_nucleus = int(sys.argv[kdx])
@@ -86,16 +86,17 @@ if (len(sys.argv) == 13):
   ymin = float(sys.argv[kdx])
   kdx += 1
   ymax = float(sys.argv[kdx])
-  kdx += 1
-  scale_radius = float(sys.argv[kdx])
+#  kdx += 1
+#  scale_radius = float(sys.argv[kdx])
   kdx += 1
   field_idx = int(sys.argv[kdx])
 else:
   print("Usage:")
-  usage_str = "show_nucleus start_index svg_xmin svg_xmax svg_ymin svg_ymax xmin xmax ymin ymax scale_radius field_idx"
+#  usage_str = "show_nucleus start_index svg_xmin svg_xmax svg_ymin svg_ymax xmin xmax ymin ymax scale_radius field_idx"
+  usage_str = "show_nucleus start_index svg_xmin svg_xmax svg_ymin svg_ymax xmin xmax ymin ymax field_idx"
   print(usage_str)
   print("e.g.,")
-  eg_str = "%s 0 0 0 2000 1 0" % (sys.argv[0])
+  eg_str = "%s 0 0 0 200 0 200 -100 100 -100 100 0" % (sys.argv[0])
   print(eg_str)
   sys.exit(1)
 
