@@ -6,7 +6,6 @@ import sys,pathlib
 import xml.etree.ElementTree as ET
 import os
 import math
-import glob
 import matplotlib.colors as mplc
 from collections import deque
 import scipy.io
@@ -192,7 +191,7 @@ def plot_substrate():
 #    plt.axis('equal')
     plt.title(title_str)
 
-    # plt.show()
+#    plt.show()
 
     png_file = "aaa%08d.png" % current_idx
 #    fig.savefig(png_file)
@@ -319,7 +318,7 @@ def plot_svg():
 #print("rvals[0:5]=",rvals[0:5])
 #  print("rvals.min, max=",rvals.min(),rvals.max())
 
-  # plt.cla()
+#  plt.cla()
   title_str += " (" + str(num_cells) + " agents)"
   plt.title(title_str)
   # axes range labels
@@ -364,14 +363,14 @@ def press(event):
     current_idx -= step_value
     if (current_idx < 0):
       current_idx = 0
-    plot_svg()
     plot_substrate()
+    plot_svg()
   elif event.key == 'right':  # right arrow key
 #        print('go forwards')
 #        fig.canvas.draw()
     current_idx += step_value
-    plot_svg()
     plot_substrate()
+    plot_svg()
   elif event.key == 'up':  # up arrow key
     step_value += 1
     print('step_value=',step_value)
@@ -382,20 +381,16 @@ def press(event):
     print('step_value=',step_value)
   elif event.key == '0':  # reset to 0th frame/file
     current_idx = 0
-    plot_svg()
     plot_substrate()
+    plot_svg()
   else:
     print('press', event.key)
 
-# plot_substrate()
-# plot_svg()
-while True:
-  svg_files = glob.glob('snap*.svg')
-  for current_idx in range(len(svg_files)):
-    plot_substrate()
-    plot_svg()
-# print("\nNOTE: click in plot window to give it focus before using keys.")
+plot_substrate()
+plot_svg()
+print("\nNOTE: click in plot window to give it focus before using keys.")
 
-# fig.canvas.mpl_connect('key_press_event', press)
+fig.canvas.mpl_connect('key_press_event', press)
 #plot_substrate(frame_idx)
 plt.show()
+
