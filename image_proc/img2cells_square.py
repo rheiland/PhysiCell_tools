@@ -1,6 +1,9 @@
 # 
-# Process a binary image: 
-#   - generate code for PhysiCell to create cells at black pixels and Dirichlet nodes at white pixels
+# Read/process a colored image and use it to generate 2D cell positions (and types). 
+#  
+# We recommend using the Anaconda Python 3.x distribution that includes the required modules.
+#   - render a scatter-like plot to visually verify the cells look correct
+#   - output "cells.dat" containing <x y z cell-type> to be read by your custom C++ module
 #
 # Author: Randy Heiland
 #
@@ -211,116 +214,13 @@ yvals = np.array(ylist)
 rvals = np.array(rlist)
 rgbs = np.array(rgb_list)
 
-#  print('type(rgbs) = ',type(rgbs))
-#  print('rgbs = ',rgbs)
-#print("xvals[0:5]=",xvals[0:5])
-#print("rvals[0:5]=",rvals[0:5])
-#  print("rvals.min, max=",rvals.min(),rvals.max())
-
 # plt.cla()
 #   title_str += " (" + str(num_cells) + " agents)"
 #   plt.title(title_str)
 axes_min = xmin
 axes_max = xmax
-plt.xlim(axes_min,axes_max)
-plt.ylim(axes_min,axes_max)
+plt.xlim(xmin,xmax)
+plt.ylim(ymin,ymax)
 circles(xvals,yvals, s=rvals, color=rgbs, edgecolor='black')    # alpha=1.0, edgecolor='black'
 
-'''
-from heterogeneity.cpp:
-
-void setup_tissue( void )
-{
-	// place a cluster of tumor cells at the center 
-	
-	double cell_radius = cell_defaults.phenotype.geometry.radius; 
-	double cell_spacing = 0.95 * 2.0 * cell_radius; 
-	
-	double tumor_radius = parameters.doubles( "tumor_radius" ); // 250.0; 
-	
-	// Parameter<double> temp; 
-	
-	std::cout << parameters << std::endl; 
-	int i = parameters.doubles.find_index( "tumor_radius" ); 
-	
-	Cell* pCell = NULL; 
-	
-	double x = 0.0; 
-	double x_outer = tumor_radius; 
-	double y = 0.0; 
-	
-	double p_mean = parameters.doubles( "oncoprotein_mean" ); 
-	double p_sd = parameters.doubles( "oncoprotein_sd" ); 
-	double p_min = parameters.doubles( "oncoprotein_min" ); 
-	double p_max = parameters.doubles( "oncoprotein_max" ); 
-	
-	int n = 0; 
-	while( y < tumor_radius )
-	{
-		x = 0.0; 
-		if( n % 2 == 1 )
-		{ x = 0.5*cell_spacing; }
-		x_outer = sqrt( tumor_radius*tumor_radius - y*y ); 
-		
-		while( x < x_outer )
-		{
-			pCell = create_cell(); // tumor cell 
-			pCell->assign_position( x , y , 0.0 );
-			pCell->custom_data[0] = NormalRandom( p_mean, p_sd );
-			if( pCell->custom_data[0] < p_min )
-			{ pCell->custom_data[0] = p_min; }
-			if( pCell->custom_data[0] > p_max )
-			{ pCell->custom_data[0] = p_max; }
-			
-			if( fabs( y ) > 0.01 )
-			{
-				pCell = create_cell(); // tumor cell 
-				pCell->assign_position( x , -y , 0.0 );
-				pCell->custom_data[0] = NormalRandom( p_mean, p_sd );
-				if( pCell->custom_data[0] < p_min )
-				{ pCell->custom_data[0] = p_min; }
-				if( pCell->custom_data[0] > p_max )
-				{ pCell->custom_data[0] = p_max; }				
-			}
-			
-			if( fabs( x ) > 0.01 )
-			{ 
-				pCell = create_cell(); // tumor cell 
-				pCell->assign_position( -x , y , 0.0 );
-				pCell->custom_data[0] = NormalRandom( p_mean, p_sd );
-				if( pCell->custom_data[0] < p_min )
-				{ pCell->custom_data[0] = p_min; }
-				if( pCell->custom_data[0] > p_max )
-				{ pCell->custom_data[0] = p_max; }
-		
-				if( fabs( y ) > 0.01 )
-				{
-					pCell = create_cell(); // tumor cell 
-					pCell->assign_position( -x , -y , 0.0 );
-					pCell->custom_data[0] = NormalRandom( p_mean, p_sd );
-					if( pCell->custom_data[0] < p_min )
-					{ pCell->custom_data[0] = p_min; }
-					if( pCell->custom_data[0] > p_max )
-					{ pCell->custom_data[0] = p_max; }
-				}
-			}
-			x += cell_spacing; 
-			
-		}
-		
-		y += cell_spacing * sqrt(3.0)/2.0; 
-		n++; 
-	}
-  '''
-
-            # if num_cells > 3:   # for debugging
-            #   print(fname,':  num_cells= ',num_cells," --- debug exit.")
-            #   sys.exit(1)
-            #   break
-
-            # print(fname,':  num_cells= ',num_cells)
-
-
-
-#ax.imshow(img)
 plt.show()
