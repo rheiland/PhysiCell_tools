@@ -1,0 +1,5 @@
+# File to be used with params_run.py
+# Allows for changing parameters in .xml, running sim, and writing results to different folders.
+# <key> <value> pairs, where <key> is the first unique node name found in the xml.
+folder  out_cancer_immune 
+max_time 240
