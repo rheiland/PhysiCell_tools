@@ -16,18 +16,19 @@ except:
   raise
 
 
-current_idx = 0
+# current_idx = 0
 
+print ('len(sys.argv) = ',len(sys.argv))
 if (len(sys.argv) < 3):
-  frame_idx = 0
+  current_idx = 0
   field_index = 4
 else:
   kdx = 1
-  frame_idx = int(sys.argv[kdx])
+  current_idx = int(sys.argv[kdx])
   kdx += 1
   field_index = int(sys.argv[kdx])
 
-print('frame, field = ',frame_idx, field_index)
+print('frame, field = ',current_idx, field_index)
 
 fig = plt.figure(figsize=(7,7))
 #fig = plt.figure(figsize=(7,5.8))
@@ -137,4 +138,3 @@ print("\nNOTE: click in plot window to give it focus before using keys.")
 fig.canvas.mpl_connect('key_press_event', press)
 #plot_substrate(frame_idx)
 plt.show()
-
