@@ -127,8 +127,8 @@ for iy in range(450,455):
     img[iy,ix,2] = 0
 '''
 
-xmin = ymin = -1500.
-xmax = ymax = 1500.
+xmin = ymin = -500.
+xmax = ymax = 500.
 x_range = xmax - xmin
 y_range = ymax - ymin
 xdel = 20.
@@ -208,6 +208,8 @@ for yval in np.arange(ymin,ymax,ydel):
 #		break
 
 fp.close()
+
+print('--> num_cells = ',num_cells)
 
 xvals = np.array(xlist)
 yvals = np.array(ylist)
