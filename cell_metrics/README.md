@@ -6,3 +6,5 @@
 ```
 af = AffinityPropagation().fit(xy_pts)
 ```
+![uniform pts](uniform.png)
+![lcumpy pts](clumpy.png)
