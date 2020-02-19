@@ -103,6 +103,10 @@ elif os_type == 'Windows':
 print('Done.\n')
 
 # LIBRR_DIR := /Users/heiland/libroadrunner/roadrunner-osx-10.9-cp36m
-print("Replace the 'LIBRR_DIR' variable in your PhysiCell Makefile with this:\n")
+print("Replace the following variables in your PhysiCell Makefile with these:\n")
 #print("LIBRR_DIR := /Users/heiland/libroadrunner/roadrunner-osx-10.9-cp36m")
-print("LIBRR_DIR := " + rrlib_dir + "\n")
+print("LIBRR_DIR := " + rrlib_dir)
+if os_type == 'Windows':
+    print("LIBRR_LIBS := " + rrlib_dir + "\bin\n")
+else:
+    print("LIBRR_LIBS := " + rrlib_dir + "/lib\n")
