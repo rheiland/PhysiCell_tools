@@ -2,10 +2,17 @@
 # Allows for changing parameters in .xml, running sim, and writing results to different folders.
 # <key> <value> pairs, where <key> is the first unique node name found in the xml.
 folder  run1 
-max_time 7200
-full_data.enable false
-worker_fraction 0.01
-max_relative_cell_adhesion_distance 1.25
+user_parameters.multiplicity_of_infection 0.1
+#max_time 360
+#full_data.enable false
+full_data.interval 60
+SVG.interval 60
 #
 folder  run2 
-max_relative_cell_adhesion_distance 2.5
+user_parameters.multiplicity_of_infection 0.08
+folder  run3 
+user_parameters.multiplicity_of_infection 0.06
+folder  run4 
+user_parameters.multiplicity_of_infection 0.04
+folder  run5 
+user_parameters.multiplicity_of_infection 0.02
