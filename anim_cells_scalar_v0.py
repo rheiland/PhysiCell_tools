@@ -119,7 +119,6 @@ ax0 = fig.add_subplot(gs[0,0], adjustable='box')
 cax1 = None
 cax2 = None
 
-cbar2 = None
 
 #plt.ion()
 
@@ -206,7 +205,7 @@ def circles(x, y, s, c='b', vmin=None, vmax=None, **kwargs):
 
 #-----------------------------------------------------
 def plot_cell_scalar():
-    global current_idx, axes_max,cax2,ax0,cbar2
+    global current_idx, axes_max,cax2,ax0
 
     frame = current_idx 
 
@@ -319,22 +318,13 @@ def plot_cell_scalar():
     # if self.axis_id_cellscalar:
             
     # If it's not there, we create it
-    if cax2 is None:   # rwh: comment out to debug memory leak
-        print("----- creating new cax2")
+    if cax2 is None:
         cax2 = fig.add_subplot(gs[1,0])
         # ax2_divider = make_axes_locatable(self.ax0)
         # self.cax2 = ax2_divider.append_axes("bottom", size="4%", pad="8%")
-
-        # cbar2 = fig.colorbar(cell_plot, ticks=None, cax=cax2, orientation="horizontal")
-        # cbar2.ax.tick_params(labelsize=9)
-    print("-- doing new cbar2")
-    if cbar2 is None:
-        cbar2 = fig.colorbar(cell_plot, ticks=None, cax=cax2, orientation="horizontal")
-    # cbar2.ax.tick_params(labelsize=9)
+    cbar2 = fig.colorbar(cell_plot, ticks=None, cax=cax2, orientation="horizontal")
+    cbar2.ax.tick_params(labelsize=9)
     # cbar2.ax.set_xlabel(cell_scalar_humanreadable_name, fontsize=9)
-    else:
-        cbar2.update_normal(cell_plot)
-
     cbar2.ax.set_xlabel("pressure", fontsize=9)
 
     ax0.set_title(title_str, fontsize=9)
@@ -396,7 +386,7 @@ def press(event):
 plot_cell_scalar()
 print("\nNOTE: click in plot window to give it focus before using keys.")
 
-for iloop in range(15):
+for iloop in range(8):
   print("----------------------------- iloop= ",iloop)
   for idx in range(63):
     current_idx = idx
